@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Dec 23 08:00:48 2019
+
+@author: profjahier
+"""
+
+def b2d(b):
+    """ convertit une chaine de 8 bits en nb décimal 
+     entrée : b = chaine de 8 caractères ('0' ou '1') 
+     sortie : d = nb entier (base décimale) """
+    d = 0
+    for i,n in enumerate(b):
+        d += 2**(7-i) * int(n)
+    return d
+    
+
+def d2b(d):
+    """ convertit un entier en une chaine de 8 bits 
+     entrée : d = nb entier (base décimale)
+     sortie : chaine de 8 caractères ('0' ou '1')  """
+    return bin(d)[2:].rjust(8, '0')
+
