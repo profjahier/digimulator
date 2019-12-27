@@ -2,6 +2,7 @@
 # Ronan Jahier
 # Olivier Lecluse
 # simulation de digirule 
+# Licence CC-BY
 
 import tkinter as tk
 import tkinter.ttk as ttk
