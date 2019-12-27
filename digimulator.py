@@ -1,6 +1,6 @@
-#! /home/profjahier/anaconda3/bin/python
-# Ronan Jahier & Olivier Lécluse
-# Version sans sleep et modif boutons
+#! /usr/bin/python3
+# Ronan Jahier
+# Olivier Lecluse
 # simulation de digirule 
 
 import tkinter as tk
@@ -20,7 +20,12 @@ ADR_BUTTON = 253
 ADR_ADRESS = 254
 ADR_DATA = 255
 
-DEBUG=True
+DEBUG=False
+VIEW_RAM = False
+
+#
+# Codage digirule
+#
 
 def print_dbg(*args,**kwargs):
     if DEBUG:
@@ -68,272 +73,227 @@ def execute(mnemo):
     """exécute l'instruction du mnémonique mnemo (donné en décimal) """
     global run_mode, PC, pause, accu, SP, status_adr_is_0
     if mnemo == 0:
-        print_dbg('HALT')
+        sv_inst.set("HALT")
         run_mode = not(run_mode)
         can_run['bg'] = 'black'
         can_stop['bg'] = 'red'
     elif mnemo == 1:
-        print_dbg('NOP')
+        sv_inst.set("NOP")
         pass
     elif mnemo == 2:
-        print_dbg('SPEED', end=' ')
+        sv_inst.set("SPEED " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         pause = 1 + 2 * RAM[PC] 
+        speed_rule.set(pause)
     elif mnemo == 3:
-        print_dbg('COPYLR', end=' ')
+        sv_inst.set("COPYLR " + str(RAM[PC+1]) + " " + str(RAM[PC+2]) )
         PC_next()
-        print_dbg(RAM[PC], end=' ')
         valeur = RAM[PC]
         PC_next()
-        print_dbg(RAM[PC])
         RAM[RAM[PC]] = valeur
+
     elif mnemo == 4:
-        print_dbg('COPYLA', end=' ')
+        sv_inst.set("COPYLA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         accu = RAM[PC]
-        print_dbg(f"accu = {accu}")
     elif mnemo == 5:
-        print_dbg('COPYAR', end=' ')
+        sv_inst.set("COPYAR " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         RAM[RAM[PC]] = accu
-        print_dbg(f"accu = {accu}")
     elif mnemo == 6:
-        print_dbg('COPYRA', end=' ')
+        sv_inst.set("COPYRA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         accu = RAM[RAM[PC]]
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 7:
-        print_dbg('COPYRR', end=' ')
+        sv_inst.set("COPYRR " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         PC_next()
-        print_dbg(RAM[PC], end=' ')
         adresse = RAM[PC]
         PC_next()
-        print_dbg(RAM[PC])
         RAM[RAM[PC]] = RAM[adresse]
         status_Z(RAM[adresse])
     elif mnemo == 8:
-        print_dbg('ADDLA', end=' ')
+        sv_inst.set("ADDLA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         valeur = RAM[PC]        
         if status_C(accu + valeur):
             accu += valeur - 256
         else:
             accu += valeur
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 9:
-        print_dbg('ADDRA', end=' ')
+        sv_inst.set("ADDRA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         valeur = RAM[RAM[PC]]
         if status_C(accu + valeur):
             accu += valeur - 256
         else:
             accu += valeur
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 10:
-        print_dbg('SUBLA', end=' ')
+        sv_inst.set("SUBLA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         valeur = RAM[PC]
         if status_C(accu - valeur, sens='inf'):
             accu += 256 - valeur
         else:
             accu -= valeur
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 11:
-        print_dbg('SUBRA', end=' ')
+        sv_inst.set("SUBRA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         valeur = RAM[RAM[PC]]
         if status_C(accu - valeur, sens='inf'):
             accu += 256 - valeur
         else:
             accu -= valeur
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 12:
-        print_dbg('ANDLA', end=' ')
+        sv_inst.set("ANDLA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         accu &= RAM[PC]
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 13:
-        print_dbg('ANDRA', end=' ')
+        sv_inst.set("ANDRA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         accu &= RAM[RAM[PC]]
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 14:
-        print_dbg('ORLA', end=' ')
+        sv_inst.set("ORLA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         accu |= RAM[PC]
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 15:
-        print_dbg('ORRA', end=' ')
+        sv_inst.set("ORRA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         accu |= RAM[RAM[PC]]
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 16:
-        print_dbg('XORLA', end=' ')
+        sv_inst.set("XORLA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         accu ^= RAM[PC]
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 17:
-        print_dbg('XORRA', end=' ')
+        sv_inst.set("XORRA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         accu ^= RAM[RAM[PC]]
         status_Z(accu)
-        print_dbg(f"accu = {accu}")
     elif mnemo == 18:
-        print_dbg('DECR', end=' ')
+        sv_inst.set("DECR " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         adresse = RAM[PC]
         RAM[adresse]  = (-1 + RAM[adresse]) % 256
         status_Z(RAM[adresse])
     elif mnemo == 19:
-        print_dbg('INCR', end=' ')
+        sv_inst.set("INCR " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         adresse = RAM[PC]
         RAM[adresse]  = (1 + RAM[adresse]) % 256
         status_Z(RAM[adresse])
     elif mnemo == 20:
-        print_dbg('DECRJZ', end=' ')
+        sv_inst.set("DECRJZ " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         adresse = RAM[PC]
         RAM[adresse] = (-1 + RAM[adresse]) % 256
         if status_Z(RAM[adresse]):
             PC += 2
     elif mnemo == 21:
-        print_dbg('INCRJZ', end=' ')
+        sv_inst.set("INCRJZ " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         adresse = RAM[PC]
         RAM[adresse] = (1 + RAM[adresse]) % 256
         if status_Z(RAM[adresse]):
             PC += 2
     elif mnemo == 22:
-        print_dbg('SHIFTRL', end=' ')
+        sv_inst.set("SHIFTRL " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         adresse = RAM[PC]
         RAM[adresse] <<= 1 # décalage avant incorporation du bit Carry
         carry_actuelle = 1 if RAM[ADR_STATUS] & 2 else 0
-        print_dbg(f'carry actuelle = {carry_actuelle}')
         RAM[adresse] += carry_actuelle # ajoute le bit de Carry à droite (LSB)
         if status_C(RAM[adresse]):
             RAM[adresse] -= 256
     elif mnemo == 23:
-        print_dbg('SHIFTRR', end=' ')
+        sv_inst.set("SHIFTRR " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         adresse = RAM[PC]
         carry_actuelle = 1 if RAM[ADR_STATUS] & 2 else 0
-        print_dbg(f'carry actuelle = {carry_actuelle}')
         if RAM[adresse] % 2 == 1: # nb impair => on "ejecte" un 1
             RAM[ADR_STATUS] |= 2 # place le bit de carry status à 1
-            print_dbg('bit C status = 1')
         else:
             RAM[ADR_STATUS] &= 253 # place le bit de carry status à 0
-            print_dbg('bit C status = 0')
         RAM[adresse] >>= 1 # décalage avant incorporation du bit Carry
         RAM[adresse] += 128 * carry_actuelle # ajoute le bit de Carry à gauche (MSB)
     elif mnemo == 24:
-        print_dbg('CBR', end=' ')
+        sv_inst.set("CBR " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC], end=' ')
         bit = RAM[PC]
         PC_next()
-        print_dbg(RAM[PC])
         RAM[RAM[PC]] &= (255-2**bit) # place le bit choisi à 0
     elif mnemo == 25:
-        print_dbg('SBR', end=' ')
+        sv_inst.set("SBR " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC], end= ' ')
         bit = RAM[PC]
         PC_next()
-        print_dbg(RAM[PC])
         RAM[RAM[PC]] |= 2**bit # place le bit choisi à 1
     elif mnemo == 26 or mnemo == 27:
         if mnemo == 26:
-            print_dbg('BCRSC', end=' ')
+            sv_inst.set("BCRSC " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         else:
-            print_dbg('BCRSS', end=' ')
+            sv_inst.set("BCRSS " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         PC_next()
-        print_dbg(RAM[PC], end= ' ')
         bit = RAM[PC]
         PC_next()
-        print_dbg(RAM[PC])
         if (mnemo == 26 and not(RAM[RAM[PC]] & 2**bit)) or (mnemo == 27 and (RAM[RAM[PC]] & 2**bit)):
             PC += 2
     elif mnemo == 28:
-        print_dbg('JUMP', end=' ')
+        sv_inst.set("JUMP " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         PC = RAM[PC] - 1 # (-1) parce qu'on fera PC+1 après avoir exécuté ce mnemo
     elif mnemo == 29:
-        print_dbg('CALL', end=' ')
+        sv_inst.set("CALL " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         SP = PC # pour savoir où revenir après un RETURN OU RETURNLA
         PC = RAM[PC] - 1 # (-1) parce qu'on fera PC+1 après avoir exécuté ce mnemo
     elif mnemo == 30:
-        print_dbg('RETLA', end=' ')
+        sv_inst.set("RETLA " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         accu = RAM[PC]
         PC = SP # retour au CALL
-        print_dbg(f"accu = {accu}")
     elif mnemo == 31:
-        print_dbg('RETURN')
+        sv_inst.set("RETURN" )
         PC = SP # retour au CALL
     elif mnemo == 32:
-        print_dbg('ADDRPC', end=' ')
+        sv_inst.set("ADDRPC " + str(RAM[PC+1]) )
         PC_next()
-        print_dbg(RAM[PC])
         PC += RAM[PC]
     elif mnemo == 33:
-        print_dbg('INITSP')
+        sv_inst.set("INITSP" )
         SP = 0 # stack pointer
     elif mnemo == 34:
-        print_dbg('RANDA')
+        sv_inst.set("RANDA" )
         accu = randint(0, 255)
-        print_dbg(f"accu = {accu}")
     else: # stop si mnemo inconnu
         execute(0) 
     
 def programme_run():
     """ exécute le programme jusqu'à lire une instruction HALT 
     fetch - decode - execute """
-    global PC
     while run_mode: # si on n'a pas exécuté un HALT, on relance le cycle fetch-decode-execute
         if idle:
             mnemo = RAM[PC] # opcode
+            display_ram()
             execute(mnemo)
-            print_dbg(RAM)
             PC_next()
         can_adress.update()
         can_data.update()
+
+def step():
+    mnemo = RAM[PC] # opcode
+    display_ram()
+    execute(mnemo)
+    PC_next()
+
 
 def run():
     """ commute le mode run et lance l'exécution du programme à partir de l'adresse définie par les LEDs adress """
@@ -347,7 +307,7 @@ def run():
         can_run['bg'] = 'green'
         can_stop['bg'] = 'black'
         run_mode = not(run_mode)
-        PC = b2d(lecture_led(frame='adress')) # adresse de la 1ère instruction du programme à exécuter
+        PC = b2d(lecture_led(frame='adress')) # adresse de la 1ère execute du programme à exécuter
         idle = True
         programme_run() # lancement du programme
         
@@ -362,6 +322,7 @@ def prev():
         print_dbg(f'RAM[{PC}]={RAM[PC], d2b(RAM[PC])}')
         affiche_led(PC, frame='adress')
         affiche_led(RAM[PC], frame='data')
+        display_ram()
     
 def next_():
     """ passe à l'adresse suivante et affiche l'adresse en cours sur les LEDs adress 
@@ -374,6 +335,7 @@ def next_():
         print_dbg(f'RAM[{PC}]={RAM[PC], d2b(RAM[PC])}')
         affiche_led(PC, frame='adress')
         affiche_led(RAM[PC], frame='data')
+        display_ram()
     
 def goto():
     """ se rend à l'adresse définie par les LEDs data et affiche l'adresse en cours sur les LEDs adress 
@@ -387,6 +349,7 @@ def goto():
         print_dbg(f'RAM[{PC}]={RAM[PC], d2b(RAM[PC])}')
         affiche_led(PC, frame='adress')
         affiche_led(RAM[PC], frame='data')
+        display_ram()
     
 def store():
     """ écrit l'état des LEDs data dans la RAM à l'adresse des LEDs adress 
@@ -397,6 +360,7 @@ def store():
         RAM[PC] = b2d(lecture_led('data'))
         print_dbg(RAM)
         next_()
+        display_ram()
     
 def load():
     """ charge un programme dans la RAM depuis la mémoire flash """
@@ -488,72 +452,147 @@ def btn_i(i):
     else:
         led_change(i, 'data')
         RAM[ADR_BUTTON] ^= 2**i
+    display_ram()
 
 def btn_i_pressed(i):
     if run_mode: 
         RAM[ADR_BUTTON] |= 2**i
+        display_ram()
         print_dbg("press ", i)
 
 def btn_i_released(i):
     if run_mode: 
         RAM[ADR_BUTTON] &= 255-2**i
+        display_ram()
         print_dbg("release ", i)
 
 def reset():
     """ initialisation au lancement de l'application """
-    global PC, run_mode, RAM, memoire_flash, pause, accu, load_mode, save_mode, idle
+    global SP,PC, run_mode, RAM, memoire_flash, pause, accu, load_mode, save_mode, idle
     pause = 1 # pause en secondes entre 2 instructions en mode run
     PC = 0 # program counter = adresse de RAM active
+    SP = 0 # Stack Pointer
     affiche_led(PC, frame='adress')
     run_mode, load_mode, save_mode = False, False, False
     RAM = [0]*256
     accu = 0 # registre accumulateur
     idle = True
+    display_ram()
     with open('memoire_flash.txt', 'r', encoding='utf-8') as f:
         memoire_flash = f.readlines()
 
+def change_speed(sender):
+    global pause
+    pause=speed_rule.get()
+#
+# Debugger
+#
+
+def show_ram():
+    global VIEW_RAM
+    VIEW_RAM = not VIEW_RAM
+    if VIEW_RAM:
+        btn_dbg.configure(relief=tk.SUNKEN)
+        display_ram()
+    else:
+        btn_dbg.configure(relief=tk.RAISED)
+        text_RAM.config(state=tk.NORMAL)
+        text_RAM.delete("1.0",tk.END)
+
+def display_ram():
+    if VIEW_RAM:
+        text_RAM.config(state=tk.NORMAL)
+        text_RAM.delete("1.0",tk.END)
+
+        for l in range(32):
+            ligne = d2h(l*8)+":  "
+            for c in range(8):
+                ligne += d2h(RAM[l*8+c])+" "
+            if l != 31:
+                ligne +="\n"
+            text_RAM.insert(tk.END, ligne)
+        
+        lpc = PC//8+1
+        cpc = PC%8*3+5
+        text_RAM.mark_set("debut", "%d.%d"%(lpc,cpc))
+        text_RAM.mark_set("fin", "%d.%d"%(lpc,cpc+2))
+        text_RAM.tag_add("pc", "debut", "fin")
+        text_RAM.config(state=tk.DISABLED)
+
+    sv_acc.set("AC = "+d2b(accu) + "  (dec : "+str(accu)+")")
+    sv_pc.set("PC  = "+d2b(PC) + "  (hex : "+d2h(PC)+")")
+    sv_sp.set("SP  = "+d2b(SP) + "  (hex : "+d2h(SP)+")")
+    sv_status.set("ST  = "+d2b(RAM[ADR_STATUS]))
+
+def dbg_setpc(sender):
+    global PC
+    s = text_RAM.index(tk.CURRENT).split(".")
+    l = int(s[0])-1
+    c = (int(s[1])-5)//3
+    PC = l*8+c
+    display_ram()
+
+#
+# Interface
+#
+
     
 digirule = tk.Tk()
-digirule.title("Digirule (simulateur)")
+digirule.title("DIGIMULATOR : simulateur de digirule 2")
+frame_dr = tk.Frame(digirule)
+frame_dr.pack(side=tk.LEFT)
+frame_dbg = tk.Frame(digirule)
+frame_dbg.pack(side=tk.LEFT)
 
-frame_run= tk.Frame(digirule)
+frame_reg = tk.Frame(frame_dbg)
+frame_reg.pack(side=tk.TOP)
+frame_ram = tk.Frame(frame_dbg)
+frame_ram.pack()
+
+# Interface digirule
+frame_run= tk.Frame(frame_dr)
 frame_run.pack()
 btn_run = tk.Button(frame_run, text='Run/Stop ', command=run)
 btn_run.pack(side=tk.LEFT)
+btn_step = tk.Button(frame_run, text='Step ', command=step)
+btn_step.pack(side=tk.LEFT)
 frame_etat = tk.Frame(frame_run)
 frame_etat.pack(side=tk.LEFT)
 can_run = tk.Canvas(frame_etat, width=30, height=10, bg='black')
 can_run.pack(side=tk.TOP)
 can_stop = tk.Canvas(frame_etat, width=30, height=10, bg='red')
 can_stop.pack(side=tk.BOTTOM)
-frame_goto = tk.Frame(digirule)
+btn_dbg = tk.Button(frame_run, text='Voir RAM ', command=show_ram)
+btn_dbg.pack(side=tk.LEFT)
+frame_goto = tk.Frame(frame_dr)
 frame_goto.pack()
 ttk.Button(frame_goto, text='Goto', command=goto).pack(side=tk.LEFT)
 ttk.Button(frame_goto, text='Prev.', command=prev).pack(side=tk.LEFT)
 ttk.Button(frame_goto, text='Next', command=next_).pack(side=tk.LEFT)
 ttk.Button(frame_goto, text='Store', command=store).pack(side=tk.LEFT)
-frame_file = tk.Frame(digirule)
+frame_file = tk.Frame(frame_dr)
 frame_file.pack()
 btn_load = tk.Button(frame_file, text='Load', command=load)
 btn_load.pack(side=tk.LEFT)
 btn_save = tk.Button(frame_file, text='Save', command=save)
 btn_save.pack(side=tk.LEFT)
-
-frame_adress = tk.Frame(digirule)
+speed_rule = tk.Scale(frame_dr, from_=0, to=1000, orient=tk.HORIZONTAL, length = 300, command=change_speed)
+speed_rule.pack()
+frame_adress = tk.Frame(frame_dr)
 frame_adress.pack()
-can_adress = tk.Canvas(digirule, width=340, height=40, background='white')
+can_adress = tk.Canvas(frame_dr, width=340, height=40, background='white')
 can_adress.pack()
 for i in range(8):
     can_adress.create_oval((20*(2*i+1)), 10, (20*(2*i+2)), 30, outline=COULEUR_ADRESS_LED, fill=COULEUR_ADRESS_LED, tags='L'+str(7-i))
 
-frame_data = tk.Frame(digirule)
+frame_data = tk.Frame(frame_dr)
 frame_data.pack()
-can_data = tk.Canvas(digirule, width=340, height=40, background='white')
+can_data = tk.Canvas(frame_dr, width=340, height=40, background='white')
 can_data.pack()
 for i in range(8):
     can_data.create_oval((20*(2*i+1)), 10, (20*(2*i+2)), 30, outline=COULEUR_DATA_LED, fill=COULEUR_DATA_LED, tags='L'+str(7-i))
 
-frame_btn = tk.Frame(digirule, width=340)
+frame_btn = tk.Frame(frame_dr, width=340)
 frame_btn.pack()
 for i in range(7,-1,-1):
     btn = ttk.Button(frame_btn, text=str(i), width=4, command=lambda i=i:btn_i(i))
@@ -561,11 +600,33 @@ for i in range(7,-1,-1):
     btn.bind("<ButtonPress>", lambda sender, i=i:btn_i_pressed(i))
     btn.bind("<ButtonRelease>", lambda sender, i=i:btn_i_released(i))
 
+# Interface debugger
 
-# text_RAM = tk.Text(digirule, width=40, height=32, bg='white')
-# text_RAM.pack()
+sv_acc = tk.StringVar()
+sv_status = tk.StringVar()
+sv_pc = tk.StringVar()
+sv_sp = tk.StringVar()
+sv_inst = tk.StringVar()
 
-ttk.Button(digirule, text='Quitter', command=digirule.destroy).pack()
+label_sp = tk.Label(frame_reg, textvariable=sv_sp)
+label_sp.pack()
+label_pc = tk.Label(frame_reg, textvariable=sv_pc)
+label_pc.pack()
+label_inst = tk.Label(frame_reg, textvariable=sv_inst, background="yellow")
+label_inst.pack()
+
+label_acc = tk.Label(frame_reg, textvariable=sv_acc)
+label_acc.pack()
+
+label_status = tk.Label(frame_reg, textvariable=sv_status)
+label_status.pack()
+
+text_RAM = tk.Text(frame_dbg, width=32, height=32, bg='white')
+text_RAM.tag_config("pc", background="yellow")
+text_RAM.bind("<Double-Button-1>", dbg_setpc)
+text_RAM.pack()
+
+ttk.Button(frame_dr, text='Quitter', command=digirule.destroy).pack()
 
 reset() # initialisation au lancement de l'application
 digirule.mainloop()
