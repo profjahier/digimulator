@@ -2,71 +2,69 @@
 # Ronan Jahier
 # Olivier Lecluse
 # simulation de digirule 
-# Licence CC-BY
+# Licence CC-BY-NC-SA
 
 import tkinter as tk
 import tkinter.ttk as ttk
-#import time
 from random import randint
-from mes_outils import *
+from converter import *
 
 with open('config.txt', 'r', encoding='utf-8') as f:
     config = f.readlines()
-COULEUR_DATA_LED = config[0].split(',')[0]
-COULEUR_ADRESS_LED = config[1].split(',')[0]
-COULEUR_ETEINT = config[2].split(',')[0]
+COLOR_DATA_LED = config[0].split(',')[0]
+COLOR_ADRESS_LED = config[1].split(',')[0]
+COLOR_OFF = config[2].split(',')[0]
 
-ADR_STATUS = 252
-ADR_BUTTON = 253
-ADR_ADRESS = 254
-ADR_DATA = 255
+REG_STATUS = 252
+REG_BUTTON = 253
+REG_ADRESS = 254
+REG_ADATA = 255
 
-DEBUG=False
-VIEW_RAM = False
+debug = False
+view_ram = False
 
 #
 # Codage digirule
 #
 
 def print_dbg(*args,**kwargs):
-    if DEBUG:
+    if debug:
         print(*args, **kwargs)
 
 def PC_next():
-    """ incrémente le PC, marque une pause (en fonction de la vitesse définie) et actualise l'affichage des LEDs 
-    version non bloquante : on enleve le sleep !"""
+    """ incrémente le PC, marque une pause (en fonction de la vitesse définie) et actualise l'affichage des LEDs """
     global PC, idle
     # On est libre pour traiter une instruction
     PC += 1
-    # l'affichage sur LEDs adress est le contenu de RAM[ADR_ADRESS] si le bit 2 du registre de status est à 1
+    # l'affichage sur LEDs adress est le contenu de RAM[REG_ADRESS] si le bit 2 du registre de status est à 1
     # sinon on affiche l'adresse du PC
-    affiche_led(RAM[ADR_ADRESS], frame='adress') if RAM[ADR_STATUS] & 4 else affiche_led(PC, frame='adress') 
-    affiche_led(RAM[ADR_DATA], frame='data')
+    switch_led(RAM[REG_ADRESS], frame='adress') if RAM[REG_STATUS] & 4 else switch_led(PC, frame='adress') 
+    switch_led(RAM[REG_ADATA], frame='data')
     if idle:
         idle = False
         can_adress.after(pause, PC_next1) # pause est en ms
 def PC_next1():
-    """La pause est finie !!"""
+    """ Pause is over !!"""
     global idle
     idle = True
 
 def status_Z(n):
     """ gère le bit du Zéro pour le registre de status lorsque nécessaire """
     if n == 0:
-         RAM[ADR_STATUS] |= 1 # place le bit de zéro status à 1
+         RAM[REG_STATUS] |= 1 # place le bit de zéro status à 1
          print_dbg('bit Z status = 1')
          return True
     print_dbg('bit Z status = 0')
-    RAM[ADR_STATUS] &= 254 # place le bit de zéro status à 0
+    RAM[REG_STATUS] &= 254 # place le bit de zéro status à 0
     return False
     
-def status_C(n, sens='sup'):
+def status_C(n, way='up'):
     """ gère le bit de Carry pour le registre de status lorsque nécessaire """
-    if (n > 255 and sens=='sup') or (n < 0 and sens=='inf'):
-        RAM[ADR_STATUS] |= 2 # place le bit de carry status à 1
+    if (n > 255 and way=='up') or (n < 0 and way=='down'):
+        RAM[REG_STATUS] |= 2 # place le bit de carry status à 1
         print_dbg('bit C status = 1')
         return True
-    RAM[ADR_STATUS] &= 253 # place le bit de carry status à 0
+    RAM[REG_STATUS] &= 253 # place le bit de carry status à 0
     print_dbg('bit C status = 0')
     return False
             
@@ -89,10 +87,9 @@ def execute(mnemo):
     elif mnemo == 3:
         sv_inst.set("COPYLR " + str(RAM[PC+1]) + " " + str(RAM[PC+2]) )
         PC_next()
-        valeur = RAM[PC]
+        value = RAM[PC]
         PC_next()
-        RAM[RAM[PC]] = valeur
-
+        RAM[RAM[PC]] = value
     elif mnemo == 4:
         sv_inst.set("COPYLA " + str(RAM[PC+1]) )
         PC_next()
@@ -109,45 +106,45 @@ def execute(mnemo):
     elif mnemo == 7:
         sv_inst.set("COPYRR " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         PC_next()
-        adresse = RAM[PC]
+        adress = RAM[PC]
         PC_next()
-        RAM[RAM[PC]] = RAM[adresse]
-        status_Z(RAM[adresse])
+        RAM[RAM[PC]] = RAM[adress]
+        status_Z(RAM[adress])
     elif mnemo == 8:
         sv_inst.set("ADDLA " + str(RAM[PC+1]) )
         PC_next()
-        valeur = RAM[PC]        
-        if status_C(accu + valeur):
-            accu += valeur - 256
+        value = RAM[PC]        
+        if status_C(accu + value):
+            accu += value - 256
         else:
-            accu += valeur
+            accu += value
         status_Z(accu)
     elif mnemo == 9:
         sv_inst.set("ADDRA " + str(RAM[PC+1]) )
         PC_next()
-        valeur = RAM[RAM[PC]]
-        if status_C(accu + valeur):
-            accu += valeur - 256
+        value = RAM[RAM[PC]]
+        if status_C(accu + value):
+            accu += value - 256
         else:
-            accu += valeur
+            accu += value
         status_Z(accu)
     elif mnemo == 10:
         sv_inst.set("SUBLA " + str(RAM[PC+1]) )
         PC_next()
-        valeur = RAM[PC]
-        if status_C(accu - valeur, sens='inf'):
-            accu += 256 - valeur
+        value = RAM[PC]
+        if status_C(accu - value, way='down'):
+            accu += 256 - value
         else:
-            accu -= valeur
+            accu -= value
         status_Z(accu)
     elif mnemo == 11:
         sv_inst.set("SUBRA " + str(RAM[PC+1]) )
         PC_next()
-        valeur = RAM[RAM[PC]]
-        if status_C(accu - valeur, sens='inf'):
-            accu += 256 - valeur
+        value = RAM[RAM[PC]]
+        if status_C(accu - value, way='down'):
+            accu += 256 - value
         else:
-            accu -= valeur
+            accu -= value
         status_Z(accu)
     elif mnemo == 12:
         sv_inst.set("ANDLA " + str(RAM[PC+1]) )
@@ -182,49 +179,49 @@ def execute(mnemo):
     elif mnemo == 18:
         sv_inst.set("DECR " + str(RAM[PC+1]) )
         PC_next()
-        adresse = RAM[PC]
-        RAM[adresse]  = (-1 + RAM[adresse]) % 256
-        status_Z(RAM[adresse])
+        adress = RAM[PC]
+        RAM[adress]  = (-1 + RAM[adress]) % 256
+        status_Z(RAM[adress])
     elif mnemo == 19:
         sv_inst.set("INCR " + str(RAM[PC+1]) )
         PC_next()
-        adresse = RAM[PC]
-        RAM[adresse]  = (1 + RAM[adresse]) % 256
-        status_Z(RAM[adresse])
+        adress = RAM[PC]
+        RAM[adress]  = (1 + RAM[adress]) % 256
+        status_Z(RAM[adress])
     elif mnemo == 20:
         sv_inst.set("DECRJZ " + str(RAM[PC+1]) )
         PC_next()
-        adresse = RAM[PC]
-        RAM[adresse] = (-1 + RAM[adresse]) % 256
-        if status_Z(RAM[adresse]):
+        adress = RAM[PC]
+        RAM[adress] = (-1 + RAM[adress]) % 256
+        if status_Z(RAM[adress]):
             PC += 2
     elif mnemo == 21:
         sv_inst.set("INCRJZ " + str(RAM[PC+1]) )
         PC_next()
-        adresse = RAM[PC]
-        RAM[adresse] = (1 + RAM[adresse]) % 256
-        if status_Z(RAM[adresse]):
+        adress = RAM[PC]
+        RAM[adress] = (1 + RAM[adress]) % 256
+        if status_Z(RAM[adress]):
             PC += 2
     elif mnemo == 22:
         sv_inst.set("SHIFTRL " + str(RAM[PC+1]) )
         PC_next()
-        adresse = RAM[PC]
-        RAM[adresse] <<= 1 # décalage avant incorporation du bit Carry
-        carry_actuelle = 1 if RAM[ADR_STATUS] & 2 else 0
-        RAM[adresse] += carry_actuelle # ajoute le bit de Carry à droite (LSB)
-        if status_C(RAM[adresse]):
-            RAM[adresse] -= 256
+        adress = RAM[PC]
+        RAM[adress] <<= 1 # décalage avant incorporation du bit Carry
+        carry_actuelle = 1 if RAM[REG_STATUS] & 2 else 0
+        RAM[adress] += carry_actuelle # ajoute le bit de Carry à droite (LSB)
+        if status_C(RAM[adress]):
+            RAM[adress] -= 256
     elif mnemo == 23:
         sv_inst.set("SHIFTRR " + str(RAM[PC+1]) )
         PC_next()
-        adresse = RAM[PC]
-        carry_actuelle = 1 if RAM[ADR_STATUS] & 2 else 0
-        if RAM[adresse] % 2 == 1: # nb impair => on "ejecte" un 1
-            RAM[ADR_STATUS] |= 2 # place le bit de carry status à 1
+        adress = RAM[PC]
+        carry_actuelle = 1 if RAM[REG_STATUS] & 2 else 0
+        if RAM[adress] % 2 == 1: # nb impair => on "ejecte" un 1
+            RAM[REG_STATUS] |= 2 # place le bit de carry status à 1
         else:
-            RAM[ADR_STATUS] &= 253 # place le bit de carry status à 0
-        RAM[adresse] >>= 1 # décalage avant incorporation du bit Carry
-        RAM[adresse] += 128 * carry_actuelle # ajoute le bit de Carry à gauche (MSB)
+            RAM[REG_STATUS] &= 253 # place le bit de carry status à 0
+        RAM[adress] >>= 1 # décalage avant incorporation du bit Carry
+        RAM[adress] += 128 * carry_actuelle # ajoute le bit de Carry à gauche (MSB)
     elif mnemo == 24:
         sv_inst.set("CBR " + str(RAM[PC+1]) )
         PC_next()
@@ -295,7 +292,6 @@ def step():
     execute(mnemo)
     PC_next()
 
-
 def run():
     """ commute le mode run et lance l'exécution du programme à partir de l'adresse définie par les LEDs adress """
     global run_mode, PC, idle
@@ -308,7 +304,7 @@ def run():
         can_run['bg'] = 'green'
         can_stop['bg'] = 'black'
         run_mode = not(run_mode)
-        PC = b2d(lecture_led(frame='adress')) # adresse de la 1ère execute du programme à exécuter
+        PC = b2d(read_from_led(frame='adress')) # adresse de la 1ère execute du programme à exécuter
         idle = True
         programme_run() # lancement du programme
         
@@ -321,8 +317,8 @@ def prev():
         PC = 255 if PC == 0 else PC - 1
         print_dbg(f'PC={PC}')
         print_dbg(f'RAM[{PC}]={RAM[PC], d2b(RAM[PC])}')
-        affiche_led(PC, frame='adress')
-        affiche_led(RAM[PC], frame='data')
+        switch_led(PC, frame='adress')
+        switch_led(RAM[PC], frame='data')
         display_ram()
     
 def next_():
@@ -334,8 +330,8 @@ def next_():
         PC = 0 if PC == 255 else PC + 1
         print_dbg(f'PC={PC}')
         print_dbg(f'RAM[{PC}]={RAM[PC], d2b(RAM[PC])}')
-        affiche_led(PC, frame='adress')
-        affiche_led(RAM[PC], frame='data')
+        switch_led(PC, frame='adress')
+        switch_led(RAM[PC], frame='data')
         display_ram()
     
 def goto():
@@ -344,12 +340,12 @@ def goto():
     global PC
     if not (run_mode or save_mode or load_mode):
         print_dbg('action goto')
-        leds = lecture_led('data')
+        leds = read_from_led('data')
         PC = b2d(leds)
         print_dbg(f'PC={PC}')
         print_dbg(f'RAM[{PC}]={RAM[PC], d2b(RAM[PC])}')
-        affiche_led(PC, frame='adress')
-        affiche_led(RAM[PC], frame='data')
+        switch_led(PC, frame='adress')
+        switch_led(RAM[PC], frame='data')
         display_ram()
     
 def store():
@@ -358,7 +354,7 @@ def store():
   #  global RAM
     if not (run_mode or save_mode or load_mode):
         print_dbg('action store')
-        RAM[PC] = b2d(lecture_led('data'))
+        RAM[PC] = b2d(read_from_led('data'))
         print_dbg(RAM)
         next_()
         display_ram()
@@ -374,125 +370,124 @@ def load():
     
 def save():
     """ sauvegarde la mémoire RAM dans un programme de la mémoire flash """
-    global memoire_flash, save_mode
+    global flash_memory, save_mode
     if not (run_mode or load_mode):
         print_dbg('action save')
         if not (run_mode or load_mode):
             save_mode = True
             btn_save['relief'] = tk.SUNKEN
     
-def affiche_led(n, frame='data', mode='int'):
+def switch_led(n, frame='data', mode='int'):
     """ affiche le nb n sur les LEDs 
     mode = 'str' : le nb est écrit comme une chaine de 8 bits
     mode = 'int' : le nb est un entier """
     can = can_data if frame == 'data' else can_adress
-    couleur = COULEUR_DATA_LED if frame == 'data' else COULEUR_ADRESS_LED
+    COLOR = COLOR_DATA_LED if frame == 'data' else COLOR_ADRESS_LED
     leds = n if mode == 'str' else d2b(n)
-    for i,etat in enumerate(leds):
-        if etat == '1':
-            can.itemconfig('L'+str(7-i), fill=couleur, outline=couleur)
+    for i,state in enumerate(leds):
+        if state == '1':
+            can.itemconfig('L'+str(7-i), fill=COLOR, outline=COLOR)
         else:
-            can.itemconfig('L'+str(7-i), fill=COULEUR_ETEINT, outline=COULEUR_ETEINT)
+            can.itemconfig('L'+str(7-i), fill=COLOR_OFF, outline=COLOR_OFF)
         
-def lecture_led(frame='data'):
+def read_from_led(frame='data'):
     """ renvoie l'état des LEDs du frame 'data' ou 'adress' 
     sous la forme d'une chaine de 8 bits """
     can = can_data if frame == 'data' else can_adress
-    couleur_ref = COULEUR_DATA_LED if frame == 'data' else COULEUR_ADRESS_LED
+    color_ref = COLOR_DATA_LED if frame == 'data' else COLOR_ADRESS_LED
     leds = ''
     for i in range(8):
-        couleur = can.itemcget('L'+str(7-i), 'fill')
-        if couleur == couleur_ref:
+        COLOR = can.itemcget('L'+str(7-i), 'fill')
+        if COLOR == color_ref:
             leds += '1'
         else:
             leds += '0'
     return leds
     
-def led_change(i, frame='data'):
+def led_switch(i, frame='data'):
     """ commute l'extinction ou l'allumage de la LED n°i """
     can = can_data if frame == 'data' else can_adress
-    couleur_ref = COULEUR_DATA_LED if frame == 'data' else COULEUR_ADRESS_LED
-    couleur = can.itemcget('L'+str(i), 'outline')
-    couleur = couleur_ref if couleur == COULEUR_ETEINT else COULEUR_ETEINT
-    can.itemconfig('L'+str(i), fill=couleur, outline=couleur)
+    color_ref = COLOR_DATA_LED if frame == 'data' else COLOR_ADRESS_LED
+    COLOR = can.itemcget('L'+str(i), 'outline')
+    COLOR = color_ref if COLOR == COLOR_OFF else COLOR_OFF
+    can.itemconfig('L'+str(i), fill=COLOR, outline=COLOR)
     
 def btn_i(i):
     """ gestion de l'appui sur un bouton Data (dépend du mode en cours : run, load ou save) """
-    global PC, load_mode, save_mode, memoire_flash, RAZBtn
-    print_dbg('appui sur btn'+str(i))
+    global PC, load_mode, save_mode, flash_memory, RAZBtn
+    print_dbg('press on btn'+str(i))
 
     if load_mode:   ### charge dans la RAM le programme n°i depuis la mémoire flash """
-        with open('memoire_flash.txt', 'r', encoding='utf-8') as f:
-            memoire_flash = f.readlines() 
-        debut = 256*i # debut de l'emplacement du prog n°i dans la mémoire flash
-        for j in range(debut, debut+256):
-            RAM[j-debut] = int(memoire_flash[j][:-1])
+        with open('flash_memory.txt', 'r', encoding='utf-8') as f:
+            flash_memory = f.readlines() 
+        start = 256*i # debut de l'emplacement du prog n°i dans la mémoire flash
+        for j in range(start, start+256):
+            RAM[j-start] = int(flash_memory[j][:-1])
         print_dbg(RAM)         
         PC = 0
-        RAM[ADR_BUTTON] = 0
+        RAM[REG_BUTTON] = 0
         load_mode = not load_mode
         btn_load['relief'] = tk.RAISED
-        affiche_led(PC, frame='adress')
-        affiche_led(RAM[PC], frame='data')
+        switch_led(PC, frame='adress')
+        switch_led(RAM[PC], frame='data')
         
     elif save_mode: ### sauvegarde la mémoire RAM dans la mémoire flash
-        debut = 256*i # debut de l'emplacement du prog n°i dans la mémoire flash
-        with open('memoire_flash.txt', 'w', encoding='utf-8') as f:
-            for j in range(0, debut):
-                f.write(memoire_flash[j])
-            for j in range(debut, debut + 256):
-                f.write(str(RAM[j-debut])+'\n')
-            for j in range(debut + 256, len(memoire_flash)):
-                f.write(memoire_flash[j])
+        start = 256*i # début de l'emplacement du prog n°i dans la mémoire flash
+        with open('flash_memory.txt', 'w', encoding='utf-8') as f:
+            for j in range(0, start):
+                f.write(flash_memory[j])
+            for j in range(start, start + 256):
+                f.write(str(RAM[j-start])+'\n')
+            for j in range(start + 256, len(flash_memory)):
+                f.write(flash_memory[j])
         save_mode = not save_mode
         btn_save['relief'] = tk.RAISED
     
     elif run_mode: 
         pass
-        # RAM[ADR_BUTTON] ^= 2**i
     else:
-        led_change(i, 'data')
-        RAM[ADR_BUTTON] ^= 2**i
+        led_switch(i, 'data')
+        RAM[REG_BUTTON] ^= 2**i
     display_ram()
 
 def btn_i_pressed(i):
     if run_mode: 
-        RAM[ADR_BUTTON] |= 2**i
+        RAM[REG_BUTTON] |= 2**i
         display_ram()
         print_dbg("press ", i)
 
 def btn_i_released(i):
     if run_mode: 
-        RAM[ADR_BUTTON] &= 255-2**i
+        RAM[REG_BUTTON] &= 255-2**i
         display_ram()
         print_dbg("release ", i)
 
 def reset():
     """ initialisation au lancement de l'application """
-    global SP,PC, run_mode, RAM, memoire_flash, pause, accu, load_mode, save_mode, idle
+    global SP,PC, run_mode, RAM, flash_memory, pause, accu, load_mode, save_mode, idle
     pause = 1 # pause en secondes entre 2 instructions en mode run
     PC = 0 # program counter = adresse de RAM active
     SP = 0 # Stack Pointer
-    affiche_led(PC, frame='adress')
+    switch_led(PC, frame='adress')
     run_mode, load_mode, save_mode = False, False, False
     RAM = [0]*256
     accu = 0 # registre accumulateur
     idle = True
     display_ram()
-    with open('memoire_flash.txt', 'r', encoding='utf-8') as f:
-        memoire_flash = f.readlines()
+    with open('flash_memory.txt', 'r', encoding='utf-8') as f:
+        flash_memory = f.readlines()
 
 def change_speed(sender):
     global pause
-    pause=speed_rule.get()
+    pause = speed_rule.get()
 #
-# Debugger
+# debugger
 #
 
 def show_ram():
-    global VIEW_RAM
-    VIEW_RAM = not VIEW_RAM
-    if VIEW_RAM:
+    global view_ram
+    view_ram = not view_ram
+    if view_ram:
         btn_dbg.configure(relief=tk.SUNKEN)
         display_ram()
     else:
@@ -501,36 +496,36 @@ def show_ram():
         text_RAM.delete("1.0",tk.END)
 
 def display_ram():
-    if VIEW_RAM:
+    if view_ram:
         text_RAM.config(state=tk.NORMAL)
         text_RAM.delete("1.0",tk.END)
 
         for l in range(32):
-            ligne = d2h(l*8)+":  "
+            line = d2h(l*8)+":  "
             for c in range(8):
-                ligne += d2h(RAM[l*8+c])+" "
+                line += d2h(RAM[l*8+c])+" "
             if l != 31:
-                ligne +="\n"
-            text_RAM.insert(tk.END, ligne)
+                line +="\n"
+            text_RAM.insert(tk.END, line)
         
-        lpc = PC//8+1
-        cpc = PC%8*3+5
+        lpc = PC // 8 + 1
+        cpc = PC % 8 * 3 + 5
         text_RAM.mark_set("debut", "%d.%d"%(lpc,cpc))
         text_RAM.mark_set("fin", "%d.%d"%(lpc,cpc+2))
         text_RAM.tag_add("pc", "debut", "fin")
         text_RAM.config(state=tk.DISABLED)
 
-    sv_acc.set("AC = "+d2b(accu) + "  (dec : "+str(accu)+")")
-    sv_pc.set("PC  = "+d2b(PC) + "  (hex : "+d2h(PC)+")")
-    sv_sp.set("SP  = "+d2b(SP) + "  (hex : "+d2h(SP)+")")
-    sv_status.set("ST  = "+d2b(RAM[ADR_STATUS]))
-
+    sv_acc.set(f"AC = {d2b(accu)} (dec : {str(accu)})")
+    sv_pc.set(f"PC  =  {d2b(PC)} (hex : {d2h(PC)})")
+    sv_sp.set(f"SP  =  {d2b(SP)} (hex : {d2h(SP)})")
+    sv_status.set(f"ST  = {d2b(RAM[REG_STATUS])}")
+    
 def dbg_setpc(sender):
     global PC
     s = text_RAM.index(tk.CURRENT).split(".")
-    l = int(s[0])-1
-    c = (int(s[1])-5)//3
-    PC = l*8+c
+    l = int(s[0]) - 1
+    c = (int(s[1]) - 5) // 3
+    PC = l * 8 + c
     display_ram()
 
 #
@@ -539,7 +534,7 @@ def dbg_setpc(sender):
 
     
 digirule = tk.Tk()
-digirule.title("DIGIMULATOR : simulateur de digirule 2")
+digirule.title("DIGIMULATOR : simulateur de digirule 2A")
 frame_dr = tk.Frame(digirule)
 frame_dr.pack(side=tk.LEFT)
 frame_dbg = tk.Frame(digirule)
@@ -557,13 +552,13 @@ btn_run = tk.Button(frame_run, text='Run/Stop ', command=run)
 btn_run.pack(side=tk.LEFT)
 btn_step = tk.Button(frame_run, text='Step ', command=step)
 btn_step.pack(side=tk.LEFT)
-frame_etat = tk.Frame(frame_run)
-frame_etat.pack(side=tk.LEFT)
-can_run = tk.Canvas(frame_etat, width=30, height=10, bg='black')
+frame_state = tk.Frame(frame_run)
+frame_state.pack(side=tk.LEFT)
+can_run = tk.Canvas(frame_state, width=30, height=10, bg='black')
 can_run.pack(side=tk.TOP)
-can_stop = tk.Canvas(frame_etat, width=30, height=10, bg='red')
+can_stop = tk.Canvas(frame_state, width=30, height=10, bg='red')
 can_stop.pack(side=tk.BOTTOM)
-btn_dbg = tk.Button(frame_run, text='Voir RAM ', command=show_ram)
+btn_dbg = tk.Button(frame_run, text='View RAM ', command=show_ram)
 btn_dbg.pack(side=tk.LEFT)
 frame_goto = tk.Frame(frame_dr)
 frame_goto.pack()
@@ -577,21 +572,21 @@ btn_load = tk.Button(frame_file, text='Load', command=load)
 btn_load.pack(side=tk.LEFT)
 btn_save = tk.Button(frame_file, text='Save', command=save)
 btn_save.pack(side=tk.LEFT)
-speed_rule = tk.Scale(frame_dr, from_=0, to=1000, orient=tk.HORIZONTAL, length = 300, command=change_speed)
+speed_rule = tk.Scale(frame_dr, from_=0, to=1000, orient=tk.HORIZONTAL, length=300, command=change_speed)
 speed_rule.pack()
 frame_adress = tk.Frame(frame_dr)
 frame_adress.pack()
 can_adress = tk.Canvas(frame_dr, width=340, height=40, background='white')
 can_adress.pack()
 for i in range(8):
-    can_adress.create_oval((20*(2*i+1)), 10, (20*(2*i+2)), 30, outline=COULEUR_ADRESS_LED, fill=COULEUR_ADRESS_LED, tags='L'+str(7-i))
+    can_adress.create_oval((20*(2*i+1)), 10, (20*(2*i+2)), 30, outline=COLOR_ADRESS_LED, fill=COLOR_ADRESS_LED, tags='L'+str(7-i))
 
 frame_data = tk.Frame(frame_dr)
 frame_data.pack()
 can_data = tk.Canvas(frame_dr, width=340, height=40, background='white')
 can_data.pack()
 for i in range(8):
-    can_data.create_oval((20*(2*i+1)), 10, (20*(2*i+2)), 30, outline=COULEUR_DATA_LED, fill=COULEUR_DATA_LED, tags='L'+str(7-i))
+    can_data.create_oval((20*(2*i+1)), 10, (20*(2*i+2)), 30, outline=COLOR_DATA_LED, fill=COLOR_DATA_LED, tags='L'+str(7-i))
 
 frame_btn = tk.Frame(frame_dr, width=340)
 frame_btn.pack()
@@ -627,7 +622,7 @@ text_RAM.tag_config("pc", background="yellow")
 text_RAM.bind("<Double-Button-1>", dbg_setpc)
 text_RAM.pack()
 
-ttk.Button(frame_dr, text='Quitter', command=digirule.destroy).pack()
+ttk.Button(frame_dr, text='Quit', command=digirule.destroy).pack()
 
 reset() # initialisation au lancement de l'application
 digirule.mainloop()

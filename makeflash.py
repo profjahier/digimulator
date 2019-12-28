@@ -13,7 +13,7 @@ mastermind = [3, 4, 252, 3, 0, 213, 34, 12, 7, 5, 236, 34, 12, 7, 5, 237, 34, 12
 
 flash = [killTheBit, luminos, adder, ca2, mastermind, [], [], []]
 
-with open('memoire_flash.txt', 'w', encoding='utf-8') as f:
+with open('flash_memory.txt', 'w', encoding='utf-8') as f:
     for prog in flash:
         for i in range(256):
             if i>=len(prog):
