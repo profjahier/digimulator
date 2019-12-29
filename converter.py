@@ -17,8 +17,12 @@ def d2b(d):
     return bin(d)[2:].rjust(8, '0')
 
 
-def d2h(d):
+def d2h(d, mode):
     """ convertit un entier en une chaine de 2 caractères hexadécimaux 
      entrée : d = nb entier (base décimale)
      sortie : chaine de 2 caractères ('0' à 'F')  """
-    return hex(d)[2:].rjust(2, '0')
+    if mode==1:
+        return hex(d)[2:].rjust(2, '0')
+    else:
+        return str(d).rjust(3, '0')
+

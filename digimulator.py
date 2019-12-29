@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!/usr/bin/python3
 # Ronan Jahier
 # Olivier Lecluse
 # digirule 2A simulator 
@@ -8,6 +8,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from random import randint
 from converter import b2d, d2b, d2h # functions to convert from one base to another
+from assemble import Assemble
 
 with open('config.txt', 'r', encoding='utf-8') as f:
     config = f.readlines()
@@ -22,6 +23,7 @@ REG_ADATA = 255
 
 debug = False
 view_ram = False
+PC=0
 
 #
 # Main code (digirule)
@@ -70,7 +72,7 @@ def status_C(n, way='up'):
             
 def execute(mnemo):
     """ executes the instruction of mnemonic (mnemo is given in decimal base) """
-    global run_mode, PC, pause, accu, SP, status_adr_is_0
+    global run_mode, PC, pause, accu, SP
     if mnemo == 0:
         sv_inst.set("HALT")
         run_mode = not(run_mode)
@@ -313,9 +315,8 @@ def prev():
     global PC
     if not (run_mode or save_mode or load_mode):
         print_dbg('action prev')
+        sv_inst.set("")
         PC = 255 if PC == 0 else PC - 1
-        print_dbg(f'PC={PC}')
-        print_dbg(f'RAM[{PC}]={RAM[PC], d2b(RAM[PC])}')
         switch_led(PC, frame='address')
         switch_led(RAM[PC], frame='data')
         display_ram()
@@ -325,9 +326,8 @@ def next_():
     global PC
     if not (run_mode or save_mode or load_mode):
         print_dbg('action next')
+        sv_inst.set("")
         PC = 0 if PC == 255 else PC + 1
-        print_dbg(f'PC={PC}')
-        print_dbg(f'RAM[{PC}]={RAM[PC], d2b(RAM[PC])}')
         switch_led(PC, frame='address')
         switch_led(RAM[PC], frame='data')
         display_ram()
@@ -338,10 +338,9 @@ def goto():
     global PC
     if not (run_mode or save_mode or load_mode):
         print_dbg('action goto')
+        sv_inst.set("")
         leds = read_from_led('data')
         PC = b2d(leds)
-        print_dbg(f'PC={PC}')
-        print_dbg(f'RAM[{PC}]={RAM[PC], d2b(RAM[PC])}')
         switch_led(PC, frame='address')
         switch_led(RAM[PC], frame='data')
         display_ram()
@@ -411,7 +410,7 @@ def led_toggle(i, frame='data'):
     
 def btn_i(i):
     """ manages the consequence of pressing the buttons (according to the actual mode : run, load or save) """
-    global PC, load_mode, save_mode, flash_memory, RAZBtn
+    global PC, load_mode, save_mode, flash_memory
     print_dbg('press on btn'+str(i))
 
     if load_mode:   # loads a program (n°i) to the RAM from the flash memory """
@@ -506,23 +505,29 @@ def display_ram():
         text_RAM.delete("1.0",tk.END)
 
         for l in range(32):
-            line = d2h(l*8)+":  "
+            line = d2h(l*8, iv_hex.get())+":  "
             for c in range(8):
-                line += d2h(RAM[l*8+c])+" "
+                line += d2h(RAM[l*8+c], iv_hex.get())+" "
             if l != 31:
                 line +="\n"
             text_RAM.insert(tk.END, line)
         
         lpc = PC // 8 + 1
-        cpc = PC % 8 * 3 + 5
+        if iv_hex.get()==1:
+            cpc = PC % 8 * 3 + 5
+            clen=2
+        else:
+            cpc = PC % 8 * 4 + 6
+            clen=3
         text_RAM.mark_set("debut", "%d.%d"%(lpc,cpc))
-        text_RAM.mark_set("fin", "%d.%d"%(lpc,cpc+2))
+        text_RAM.mark_set("fin", "%d.%d"%(lpc,cpc+clen))
         text_RAM.tag_add("pc", "debut", "fin")
         text_RAM.config(state=tk.DISABLED)
 
     sv_acc.set(f"AC = {d2b(accu)} (dec : {str(accu)})")
-    sv_pc.set(f"PC  =  {d2b(PC)} (hex : {d2h(PC)})")
-    sv_sp.set(f"SP  =  {d2b(SP)} (hex : {d2h(SP)})")
+    hexmode_str = "hex" if iv_hex.get() == 1 else "dec"
+    sv_pc.set(f"PC  =  {d2b(PC)} ({hexmode_str} : {d2h(PC, iv_hex.get())})")
+    sv_sp.set(f"SP  =  {d2b(SP)} ({hexmode_str} : {d2h(SP,iv_hex.get())})")
     sv_status.set(f"ST  = {d2b(RAM[REG_STATUS])}")
     
 def dbg_setpc(sender):
@@ -534,15 +539,67 @@ def dbg_setpc(sender):
     PC = l * 8 + c
     display_ram()
 
+def change_hexmode():
+    if iv_hex.get()==1:
+        text_RAM.configure(width=32)
+    else: 
+        text_RAM.configure(width=41)
+    display_ram()
+
+#
+# editor functions
+#
+
+def assemble():
+    global PC
+    a = Assemble(edit_text.get("1.0",tk.END))
+    res = a.parse()
+    if res[0]:
+        # No error during assembly process
+        assembled_ram = res[1]
+        error_sv.set("Success ! program occupation :"+str(len(assembled_ram))+"/255")
+        # copy assembled program in RAM
+        for i in range(len(assembled_ram)):
+            RAM[i]=assembled_ram[i]
+        PC = 0
+        display_ram()
+    else:
+        error_sv.set(res[1])
+        error_line = res[2]
+        if error_line != 0:
+            edit_text.mark_set("err_line_begin", "%d.0"%error_line)
+            edit_text.mark_set("err_line_end", "%d.end"%error_line)
+            edit_text.tag_add("error", "err_line_begin", "err_line_end")
+            edit_text.tag_config("error", background="red")
+        else:
+            index = edit_text.search(res[3], "1.0", nocase=1)
+            l,c = index.split(".")
+            c = str(int(c)+len(res[3]))
+            edit_text.mark_set("err_line_begin", index)
+            edit_text.mark_set("err_line_end", l+"."+c)
+            edit_text.tag_add("error", "err_line_begin", "err_line_end")
+            edit_text.tag_config("error", background="orange")
+
+def remove_err(sender):
+    #removes the error tag
+    edit_text.tag_delete("error")
+
+def quit():
+    digirule.quit()
+    digirule.destroy()
 #
 # Interface
 #
 
-    
+
 digirule = tk.Tk()
 digirule.title("DIGIMULATOR : simulates a digirule 2A")
-frame_dr = tk.Frame(digirule)
-frame_dr.pack(side=tk.LEFT)
+frame_left = tk.Frame(digirule)
+frame_left.pack(side=tk.LEFT)
+frame_dr = tk.Frame(frame_left)
+frame_dr.pack(side=tk.TOP)
+frame_edit = tk.Frame(frame_left)
+frame_edit.pack()
 frame_dbg = tk.Frame(digirule)
 frame_dbg.pack(side=tk.LEFT)
 
@@ -602,13 +659,34 @@ for i in range(7,-1,-1):
     btn.bind("<ButtonPress>", lambda sender, i=i:btn_i_pressed(i))
     btn.bind("<ButtonRelease>", lambda sender, i=i:btn_i_released(i))
 
-# Interface debugger
+# editor GUI
+error_sv = tk.StringVar()
+frame_txt = tk.Frame(frame_edit,width=600, height=500)
+frame_txt.pack(fill="both", expand=True)
+frame_txt.grid_propagate(False)
+frame_txt.grid_rowconfigure(0, weight=1)
+frame_txt.grid_columnconfigure(0, weight=1)
+edit_text = tk.Text(frame_txt, width=80, height=25)
+edit_text.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+scrollb = tk.Scrollbar(frame_txt, command=edit_text.yview)
+scrollb.grid(row=0, column=1, sticky='nsew')
+edit_text['yscrollcommand'] = scrollb.set
+edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords")
+assemble_btn = tk.Button(frame_edit, text="Assemble", command=assemble)
+assemble_btn.pack()
+error_lbl = tk.Label(frame_edit, textvariable = error_sv)
+error_lbl.pack()
+edit_text.bind("<Key>", remove_err)
+
+# debugger GUI
 
 sv_acc = tk.StringVar()
 sv_status = tk.StringVar()
 sv_pc = tk.StringVar()
 sv_sp = tk.StringVar()
 sv_inst = tk.StringVar()
+iv_hex = tk.IntVar()
+iv_hex.set(1)
 
 label_sp = tk.Label(frame_reg, textvariable=sv_sp)
 label_sp.pack()
@@ -628,7 +706,11 @@ text_RAM.tag_config("pc", background="yellow")
 text_RAM.bind("<Double-Button-1>", dbg_setpc)
 text_RAM.pack()
 
-ttk.Button(frame_dr, text='Quit', command=digirule.destroy).pack()
+hex_cb = tk.Checkbutton(frame_dbg, variable=iv_hex, text="Hexadecimal mode", onvalue=1, offvalue=0, command=change_hexmode)
+hex_cb.pack()
+
+
+ttk.Button(frame_edit, text='Quit', command=quit).pack()
 
 reset() # sets the environment when digirule starts
 digirule.mainloop()
