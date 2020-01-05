@@ -49,10 +49,10 @@ class Assemble():
         self.parse()
 
     def split_lines(self, text):
-        """Analyse le texte et renvoie une liste de lignes. Une ligne est une liste de la forme
+        """parses the text and returns a list of lines. A line is a list looking like this :
             ['%define', 'statusregister', '252', 8], ['copylr', '1', 'dataledregister', 10], [':loop', 18] etc..:
-            le dernier element d'une ligne est le numero de ligne dans le fichier texte original
-            les commentaires et lignes vides sont supprimés"""    
+            le last element of a line is the line number in the original text file
+            coments and empty lines are removed"""    
         def is_space(c):
             return c==" " or c=="\t"
         def is_eol(c):
@@ -102,16 +102,16 @@ class Assemble():
         PC = 0
         ram = []
 
-        keywords = dict()   # dico des mots clés (definitions de variables et labels)
-                            # entree du type (True, valeur) pour une definition de variable
-                            #                (False, PC) pour un label
-                            # cle = nom de la variable ou du label
+        keywords = dict()   # keywords dictionary (variable definitions and labels)
+                            # example of entry (True, value) for a variable definition
+                            #                  (False, PC) for a label - PC is the program counter value for the Jump
+                            # the key is the variable or the label name
 
         # Premiere passe
         
         for line in self.lines:
             if line[0] == "%define":
-                # definition de variable
+                # variable definition
                 try:
                     if line[2][0:2]=='0b':
                         keywords[line[1]]=int(line[2],2)
@@ -120,34 +120,34 @@ class Assemble():
                 except:
                     return error("error in keyword definition", line[3])
             elif line[0][0] == ":":
-                # definition de label
+                # label definition
                 try:
                     keywords[line[0][1:]] = PC
                 except:
                     return error("error in label definition", line[1])
             else:
-                # analyse d'une commande
+                # command analysis
                 word = line[0]
-                # verification du nom
+                # name checking
                 if word not in self.operators_dic:
                     return error("unkwown command : " + word, line[-1])
-                # verification du nb de parametres
+                # number of arguments checking
                 nb_par = self.operators_dic[word]["operandCount"]
                 if nb_par != len(line)-2:
                     return error("bad arguments count for "+word, line[-1])
                 code = self.operators_dic[word]["code"]
-                # traitement des parametres
+                # arguments handling
                 ram.append(code)
                 PC += 1
                 for o in line[1:-1]:
                     if o.isdigit():
-                        # L'operande est un nombre
+                        # the operand is a number
                         n = int(o)
                         if not 0<=n<256:
                             return error("too big number "+o, line[-1])
                         ram.append(n)
                     elif o[0:2]=='0b':
-                        # l'operande est un nombre binaire
+                        # the operand is a binary number
                         try:
                             n=int(o,2)
                             if not 0<=n<256:
@@ -155,15 +155,15 @@ class Assemble():
                         except ValueError:
                             return error("bad argument type "+o, line[-1])
                     else:
-                        # variable ou label en parametre
+                        # the argument is a variable or a label
                         if o in keywords:
                             ram.append(keywords[o])
                         else:
                             ram.append(o)
-                        # Les parametres inconnus seront traites en 2eme passe
+                        # unknown arguments will be processed during the second pass
                     PC += 1
 
-        # seconde passe : resolution des derniers noms restant
+        # second pass : remaining names processing
 
         for i,r in enumerate(ram):
             if type(r)==str:
