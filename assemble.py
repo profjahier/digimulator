@@ -110,6 +110,8 @@ class Assemble():
         # Premiere passe
         
         for line in self.lines:
+            if PC >=252:
+       	        return error("no space left in program memory", line[-1])
             if line[0] == "%define":
                 # variable definition
                 try:
