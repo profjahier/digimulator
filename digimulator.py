@@ -266,7 +266,7 @@ def execute(mnemo):
     elif mnemo == 32:
         sv_inst.set("ADDRPC " + str(RAM[PC+1]) )
         PC_next()
-        PC += RAM[PC]
+        PC = (PC+RAM[RAM[PC]])%256
     elif mnemo == 33:
         sv_inst.set("INITSP" )
         SP = 0 # stack pointer
