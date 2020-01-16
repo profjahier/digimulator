@@ -22,8 +22,13 @@ REG_ADDRESS = 254
 REG_ADATA = 255
 
 debug = False
+run_mode = False
 view_ram = False
-PC=0
+PC = 0
+# Stack variables
+STACK_DEPTH = 4
+stack = [0]*STACK_DEPTH
+SP = 0
 
 #
 # Main code (digirule)
@@ -72,15 +77,31 @@ def status_C(n, way='up'):
             
 def execute(mnemo):
     """ executes the instruction of mnemonic (mnemo is given in decimal base) """
-    global run_mode, PC, pause, accu, SP
-    if mnemo == 0:
-        sv_inst.set("HALT")
+    def halt():
+        global run_mode
         run_mode = not(run_mode)
         can_run['bg'] = 'black'
         can_stop['bg'] = 'red'
+    def stack_in(p):
+        global SP
+        stack[SP] = PC
+        SP += 1 # saves the address where to go after the next RETURN or RETURNLA
+        if SP >= STACK_DEPTH:
+        	halt() # stack overflow
+    def stack_out():
+        global SP
+        SP -= 1
+        s = stack[SP]
+        if SP < 0:
+            halt() # stack underflow
+        return s
+    	
+    global run_mode, PC, pause, accu, SP
+    if mnemo == 0:
+        sv_inst.set("HALT")
+        halt()
     elif mnemo == 1:
         sv_inst.set("NOP")
-        pass
     elif mnemo == 2:
         sv_inst.set("SPEED " + str(RAM[PC+1]) )
         PC_next()
@@ -253,16 +274,16 @@ def execute(mnemo):
     elif mnemo == 29:
         sv_inst.set("CALL " + str(RAM[PC+1]) )
         PC_next()
-        SP = PC # saves the address where to go after the next RETURN or RETURNLA
+        stack_in(PC)
         PC = RAM[PC] - 1 # (-1) because of the "PC+1 command" after this actual execution
     elif mnemo == 30:
         sv_inst.set("RETLA " + str(RAM[PC+1]) )
         PC_next()
         accu = RAM[PC]
-        PC = SP # to go back to the CALL
+        PC = stack_out() # to go back to the CALL
     elif mnemo == 31:
         sv_inst.set("RETURN" )
-        PC = SP # to go back to the CALL
+        PC = stack_out() # to go back to the CALL
     elif mnemo == 32:
         sv_inst.set("ADDRPC " + str(RAM[PC+1]) )
         PC_next()
@@ -527,7 +548,10 @@ def display_ram():
     sv_acc.set(f"AC = {d2b(accu)} (dec : {str(accu)})")
     hexmode_str = "hex" if iv_hex.get() == 1 else "dec"
     sv_pc.set(f"PC  =  {d2b(PC)} ({hexmode_str} : {d2h(PC, iv_hex.get())})")
-    sv_sp.set(f"SP  =  {d2b(SP)} ({hexmode_str} : {d2h(SP,iv_hex.get())})")
+    stack_str = "stack : "
+    for i in range(SP):
+        stack_str += d2h(stack[i], iv_hex.get()) + " "
+    sv_sp.set(stack_str)
     sv_status.set(f"ST  = {d2b(RAM[REG_STATUS])}")
     
 def dbg_setpc(sender):
