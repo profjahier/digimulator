@@ -23,7 +23,7 @@ REG_ADATA = 255
 
 debug = False
 run_mode = False
-view_ram = False
+view_ram = True
 PC = 0
 # Stack variables
 STACK_DEPTH = 4
@@ -307,6 +307,8 @@ def program_run():
             PC_next()
         can_address.update()
         can_data.update()
+    switch_led(PC, frame='address') 
+    switch_led(RAM[PC], frame='data')
 
 def step():
     """ runs only one single step of the program """
@@ -323,6 +325,8 @@ def run():
         can_run['bg'] = 'black'
         can_stop['bg'] = 'red'
         run_mode = not(run_mode)
+        switch_led(PC, frame='address')
+        switch_led(RAM[PC], frame='data')
     elif not run_mode and not(save_mode or load_mode):
         can_run['bg'] = 'green'
         can_stop['bg'] = 'black'
@@ -491,6 +495,7 @@ def reset():
     switch_led(PC, frame='address')
     run_mode, load_mode, save_mode = False, False, False
     RAM = [0]*256 # empty 256 byte RAM
+    switch_led(RAM[PC], frame='data')
     accu = 0 # accumulator register
     idle = True
     display_ram()
@@ -558,10 +563,16 @@ def dbg_setpc(sender):
     """ goes to a specifc address (sets new PC) directly by double-clicking """
     global PC
     s = text_RAM.index(tk.CURRENT).split(".")
-    l = int(s[0]) - 1
-    c = (int(s[1]) - 5) // 3
+    if iv_hex.get()==1:
+        l = int(s[0]) - 1
+        c = (int(s[1]) - 5) // 3
+    else:
+        l = int(s[0]) - 1
+        c = (int(s[1]) - 6) // 4
     PC = l * 8 + c
     display_ram()
+    switch_led(PC, frame='address')
+    switch_led(RAM[PC], frame='data')
 
 def change_hexmode():
     if iv_hex.get()==1:
@@ -587,6 +598,8 @@ def assemble():
             RAM[i]=assembled_ram[i]
         PC = 0
         display_ram()
+        switch_led(PC, frame='address')
+        switch_led(RAM[PC], frame='data')
     else:
         error_sv.set(res[1])
         error_line = res[2]
@@ -645,7 +658,7 @@ can_run = tk.Canvas(frame_state, width=30, height=10, bg='black')
 can_run.pack(side=tk.TOP)
 can_stop = tk.Canvas(frame_state, width=30, height=10, bg='red')
 can_stop.pack(side=tk.BOTTOM)
-btn_dbg = tk.Button(frame_run, text='View RAM ', command=show_ram)
+btn_dbg = tk.Button(frame_run, text='Hide RAM ', command=show_ram)
 btn_dbg.pack(side=tk.LEFT)
 frame_goto = tk.Frame(frame_dr)
 frame_goto.pack()
