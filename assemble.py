@@ -42,7 +42,17 @@ class Assemble():
                     "return": { "code": 31, "operandCount": 0},
                     "addrpc": { "code": 32, "operandCount": 1},
                     "initsp": { "code": 33, "operandCount": 0},
-                    "randa": { "code": 34, "operandCount": 0}
+                    "randa": { "code": 34, "operandCount": 0},
+                    "copyli": { "code": 35, "operandCount": 2},
+                    "copyai": { "code": 36, "operandCount": 1},
+                    "copyia": { "code": 37, "operandCount": 1},
+                    "copyii": { "code": 38, "operandCount": 2},
+                    "shiftar": { "code": 39, "operandCount": 0},
+                    "shiftal": { "code": 40, "operandCount": 0},
+                    "jumpi": { "code": 41, "operandCount": 1},
+                    "calli": { "code": 42, "operandCount": 1},
+                    "push": { "code": 43, "operandCount": 0},
+                    "pop": { "code": 44, "operandCount": 0},
                 }
         self.labelAddressByName = {}
 

@@ -27,8 +27,11 @@ view_ram = True
 PC = 0
 # Stack variables
 STACK_DEPTH = 4
+OPSTACK_DEPTH = 256
 stack = [0]*STACK_DEPTH
+opstack = [0]*OPSTACK_DEPTH
 SP = 0
+OSP = 0
 
 #
 # Main code (digirule)
@@ -96,7 +99,7 @@ def execute(mnemo):
             halt() # stack underflow
         return s
     	
-    global run_mode, PC, pause, accu, SP
+    global run_mode, PC, pause, accu, SP, OSP
     if mnemo == 0:
         sv_inst.set("HALT")
         halt()
@@ -291,9 +294,70 @@ def execute(mnemo):
     elif mnemo == 33:
         sv_inst.set("INITSP" )
         SP = 0 # stack pointer
+        OSP = 0
     elif mnemo == 34:
         sv_inst.set("RANDA" )
         accu = randint(0, 255)
+    # Nouvelles instructions DGR2B
+    elif mnemo == 35:
+        sv_inst.set("COPYLI " + str(RAM[PC+1]) + " " + str(RAM[PC+2]) )
+        PC_next()
+        value = RAM[PC]
+        PC_next()
+        RAM[RAM[RAM[PC]]] = value
+    elif mnemo == 36:
+        sv_inst.set("COPYAI " + str(RAM[PC+1]) )
+        PC_next()
+        RAM[RAM[RAM[PC]]] = accu
+    elif mnemo == 37:
+        sv_inst.set("COPYIA " + str(RAM[PC+1]) )
+        PC_next()
+        accu = RAM[RAM[RAM[PC]]]
+        status_Z(accu)
+    elif mnemo == 38:
+        sv_inst.set("COPYII " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        PC_next()
+        address = RAM[PC]
+        PC_next()
+        RAM[RAM[RAM[PC]]] = RAM[RAM[address]]
+        status_Z(RAM[RAM[address]])
+    elif mnemo == 40:
+        sv_inst.set("SHIFTAL")
+        accu <<= 1 # shifts whitout taking care of the previous Carry bit
+        carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
+        accu += carry # sets the LSB equals to the previous Carry bit
+        if status_C(accu):
+            accu -= 256
+    elif mnemo == 39:
+        sv_inst.set("SHIFTAR")
+        carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
+        if accu % 2 == 1: # if odd value => raises a new Carry
+            RAM[REG_STATUS] |= 2 # sets Carry bit to 1
+        else:
+            RAM[REG_STATUS] &= 253 # sets Carry bit to 0
+        accu >>= 1 # shifts whitout taking care of the previous Carry bit
+        accu += 128 * carry # sets the MSB equals to the previous Carry bit
+    elif mnemo == 41:
+        sv_inst.set("JUMPI " + str(RAM[PC+1]) )
+        PC_next()
+        PC = RAM[RAM[PC]] - 1 # (-1) because of the "PC+1" after this actual execution
+    elif mnemo == 42:
+        sv_inst.set("CALLI " + str(RAM[PC+1]) )
+        PC_next()
+        stack_in(PC)
+        PC = RAM[RAM[PC]] - 1 # (-1) because of the "PC+1 command" after this actual execution
+    elif mnemo == 43:
+        sv_inst.set("PUSH")
+        opstack[OSP] = accu
+        OSP += 1 
+        if OSP >= OPSTACK_DEPTH:
+        	halt() # stack overflow
+    elif mnemo == 44:
+        sv_inst.set("POP")
+        OSP -= 1
+        accu = opstack[OSP]
+        if OSP < 0:
+            halt() # stack underflow
     else: # digirule program stops if unknown mnemonic
         execute(0) 
     
@@ -492,6 +556,7 @@ def reset():
     pause = 1 # pause (in s) between 2 executions on run_mode
     PC = 0 # Program Counter => address of RAM
     SP = 0 # Stack Pointer
+    OSP = 0
     switch_led(PC, frame='address')
     run_mode, load_mode, save_mode = False, False, False
     RAM = [0]*256 # empty 256 byte RAM
@@ -592,6 +657,7 @@ def assemble():
     if res[0]:
         # No error during assembly process
         assembled_ram = res[1]
+        # print(assembled_ram)
         error_sv.set("Success ! program occupation :"+str(len(assembled_ram))+"/255")
         # copy assembled program in RAM
         for i in range(len(assembled_ram)):
@@ -630,6 +696,8 @@ def quit():
 
 
 digirule = tk.Tk()
+#digirule.style = ttk.Style()
+#digirule.style.theme_use("alt")
 digirule.title("DIGIMULATOR : simulates a digirule 2A")
 frame_left = tk.Frame(digirule)
 frame_left.pack(side=tk.LEFT)
@@ -637,7 +705,7 @@ frame_dr = tk.Frame(frame_left)
 frame_dr.pack(side=tk.TOP)
 frame_edit = tk.Frame(frame_left)
 frame_edit.pack()
-frame_dbg = tk.Frame(digirule)
+frame_dbg = tk.Frame (digirule)
 frame_dbg.pack(side=tk.LEFT)
 
 frame_reg = tk.Frame(frame_dbg)
