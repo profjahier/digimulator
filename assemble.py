@@ -53,6 +53,8 @@ class Assemble():
                     "calli": { "code": 42, "operandCount": 1},
                     "push": { "code": 43, "operandCount": 0},
                     "pop": { "code": 44, "operandCount": 0},
+                    "head": { "code": 45, "operandCount": 0},
+                    "depth": { "code": 46, "operandCount": 0},
                 }
         self.labelAddressByName = {}
 

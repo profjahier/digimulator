@@ -354,10 +354,23 @@ def execute(mnemo):
         	halt() # stack overflow
     elif mnemo == 44:
         sv_inst.set("POP")
-        OSP -= 1
-        accu = opstack[OSP]
-        if OSP < 0:
+        if OSP == 0:
             halt() # stack underflow
+        else:
+            OSP -= 1
+            accu = opstack[OSP]
+            status_Z(accu)
+    elif mnemo == 45:
+        sv_inst.set("HEAD")
+        if OSP == 0:
+            halt() # stack underflow
+        else:
+            accu = opstack[OSP-1]
+            status_Z(accu)
+    elif mnemo == 46:
+        sv_inst.set("DEPTH")
+        accu = OSP
+        status_Z(accu)
     else: # digirule program stops if unknown mnemonic
         execute(0) 
     
@@ -773,7 +786,7 @@ frame_txt.pack(fill="both", expand=True)
 frame_txt.grid_propagate(False)
 frame_txt.grid_rowconfigure(0, weight=1)
 frame_txt.grid_columnconfigure(0, weight=1)
-edit_text = tk.Text(frame_txt, width=80, height=25, background='black', fg='green')
+edit_text = tk.Text(frame_txt, width=80, height=25, background='black', fg='green', insertbackground='yellow')
 edit_text.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 scrollb = ttk.Scrollbar(frame_txt, command=edit_text.yview)
 scrollb.grid(row=0, column=1, sticky='nsew')
