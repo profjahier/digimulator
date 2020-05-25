@@ -120,7 +120,6 @@ class Assemble():
                             # the key is the variable or the label name
 
         # Premiere passe
-        
         for line in self.lines:
             if PC >=252:
        	        return error("no space left in program memory", line[-1])
@@ -133,6 +132,19 @@ class Assemble():
                         keywords[line[1]]=int(line[2])
                 except:
                     return error("error in keyword definition", line[3])
+            elif line[0] == "%data":
+                # Data definitions
+                keywords[line[1]] = PC
+                for d in line [2:-1]:
+                    try:
+                        if d[0:2]=='0b':
+                            code = int(d,2)
+                        else:
+                            code = int(d)
+                    except:
+                        return error("error in data definition", line[-1])
+                    ram.append(code)
+                    PC += 1
             elif line[0][0] == ":":
                 # label definition
                 try:

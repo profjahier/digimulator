@@ -583,7 +583,7 @@ def reset():
 def change_speed(sender):
     """ sets the speed while programm running (not implemented on actual digirule) """
     global pause
-    pause = speed_rule.get()
+    pause = int(speed_rule.get())
     
 #
 # debugger
