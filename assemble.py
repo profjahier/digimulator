@@ -178,6 +178,7 @@ class Assemble():
                             n=int(o,2)
                             if not 0<=n<256:
                                 return error("too big number "+o, line[-1])
+                            ram.append(n)
                         except ValueError:
                             return error("bad argument type "+o, line[-1])
                     else:
