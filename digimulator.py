@@ -249,13 +249,13 @@ def execute(mnemo):
         RAM[address] >>= 1 # shifts whitout taking care of the previous Carry bit
         RAM[address] += 128 * carry # sets the MSB equals to the previous Carry bit
     elif mnemo == 24:
-        sv_inst.set("CBR " + str(RAM[PC+1]) )
+        sv_inst.set("CBR " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
         PC_next()
         bit = RAM[PC]
         PC_next()
         RAM[RAM[PC]] &= (255-2**bit) # sets the specified bit to 0
     elif mnemo == 25:
-        sv_inst.set("SBR " + str(RAM[PC+1]) )
+        sv_inst.set("SBR " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
         PC_next()
         bit = RAM[PC]
         PC_next()
@@ -315,20 +315,34 @@ def execute(mnemo):
         accu = RAM[RAM[RAM[PC]]]
         status_Z(accu)
     elif mnemo == 38:
+        sv_inst.set("COPYRI " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        PC_next()
+        address = RAM[PC]
+        PC_next()
+        RAM[RAM[RAM[PC]]] = RAM[address]
+        status_Z(RAM[address])
+    elif mnemo == 39:
+        sv_inst.set("COPYIR " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        PC_next()
+        address = RAM[PC]
+        PC_next()
+        RAM[RAM[PC]] = RAM[RAM[address]]
+        status_Z(RAM[RAM[address]])
+    elif mnemo == 40:
         sv_inst.set("COPYII " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         PC_next()
         address = RAM[PC]
         PC_next()
         RAM[RAM[RAM[PC]]] = RAM[RAM[address]]
         status_Z(RAM[RAM[address]])
-    elif mnemo == 40:
+    elif mnemo == 41:
         sv_inst.set("SHIFTAL")
         accu <<= 1 # shifts whitout taking care of the previous Carry bit
         carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
         accu += carry # sets the LSB equals to the previous Carry bit
         if status_C(accu):
             accu -= 256
-    elif mnemo == 39:
+    elif mnemo == 42:
         sv_inst.set("SHIFTAR")
         carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
         if accu % 2 == 1: # if odd value => raises a new Carry
@@ -337,22 +351,22 @@ def execute(mnemo):
             RAM[REG_STATUS] &= 253 # sets Carry bit to 0
         accu >>= 1 # shifts whitout taking care of the previous Carry bit
         accu += 128 * carry # sets the MSB equals to the previous Carry bit
-    elif mnemo == 41:
+    elif mnemo == 43:
         sv_inst.set("JUMPI " + str(RAM[PC+1]) )
         PC_next()
         PC = RAM[RAM[PC]] - 1 # (-1) because of the "PC+1" after this actual execution
-    elif mnemo == 42:
+    elif mnemo == 44:
         sv_inst.set("CALLI " + str(RAM[PC+1]) )
         PC_next()
         stack_in(PC)
         PC = RAM[RAM[PC]] - 1 # (-1) because of the "PC+1 command" after this actual execution
-    elif mnemo == 43:
+    elif mnemo == 45:
         sv_inst.set("PUSH")
-        opstack[OSP] = accu
-        OSP += 1 
         if OSP >= OPSTACK_DEPTH:
         	halt() # stack overflow
-    elif mnemo == 44:
+        opstack[OSP] = accu
+        OSP += 1 
+    elif mnemo == 46:
         sv_inst.set("POP")
         if OSP == 0:
             halt() # stack underflow
@@ -360,14 +374,50 @@ def execute(mnemo):
             OSP -= 1
             accu = opstack[OSP]
             status_Z(accu)
-    elif mnemo == 45:
+    elif mnemo == 47:
+        sv_inst.set("PUSHR" + str(RAM[PC+1]))
+        if OSP >= OPSTACK_DEPTH:
+        	halt() # stack overflow
+        PC_next()
+        address = RAM[PC]
+        opstack[OSP] = RAM[address]
+        OSP += 1 
+    elif mnemo == 48:
+        sv_inst.set("POPR" + str(RAM[PC+1]))
+        PC_next()
+        address = RAM[PC]
+        if OSP == 0:
+            halt() # stack underflow
+        else:
+            OSP -= 1
+            RAM[address] = opstack[OSP]
+            status_Z(RAM[address])
+    elif mnemo == 49:
+        sv_inst.set("PUSHI" + str(RAM[PC+1]))
+        if OSP >= OPSTACK_DEPTH:
+        	halt() # stack overflow
+        PC_next()
+        address = RAM[PC]
+        opstack[OSP] = RAM[RAM[address]]
+        OSP += 1 
+    elif mnemo == 50:
+        sv_inst.set("POPI" + str(RAM[PC+1]))
+        PC_next()
+        address = RAM[PC]
+        if OSP == 0:
+            halt() # stack underflow
+        else:
+            OSP -= 1
+            RAM[RAM[address]] = opstack[OSP]
+            status_Z(RAM[RAM[address]])
+    elif mnemo == 51:
         sv_inst.set("HEAD")
         if OSP == 0:
             halt() # stack underflow
         else:
             accu = opstack[OSP-1]
             status_Z(accu)
-    elif mnemo == 46:
+    elif mnemo == 52:
         sv_inst.set("DEPTH")
         accu = OSP
         status_Z(accu)
