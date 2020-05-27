@@ -1,4 +1,8 @@
 // int2bcd: Converts a byte to BCD
+// Adapted from Athanasios Anastasio's int2str program
+// https://dgtools.readthedocs.io/en/latest/int2str.html
+
+// Uses the Digirule 2B instruction Set
 
 %define status_reg 252
 %define ZFlag      0
