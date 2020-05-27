@@ -8,27 +8,28 @@
 //
 
 // Constants
-%define index           240
-%define lineadr         241
-%define output          242
 %define statusRegister  252
 %define dataLEDRegister 255
 %define hideAddressBit  2
 
+%define POV_size 8
+
 	initsp
 	speed 1
-	copylr dataLEDRegister output
 	sbr hideAddressBit statusRegister
 :mainloop
-	copylr 8 index
+	copylr POV_size index
 	copylr POV lineadr
 :loop
-	copyii lineadr output
+	copyir lineadr dataLEDRegister
 	incr lineadr
 	decrjz index
 	jump loop
 	jump mainloop
 
+// Variables
+%data index 0
+%data lineadr 0
 
 // Drawing
 %data POV 126 129 165 129 165 153 129 126

@@ -746,6 +746,14 @@ def assemble():
             edit_text.tag_add("error", "err_line_begin", "err_line_end")
             edit_text.tag_config("error", background="orange")
 
+def clearmem():
+    for i in range(len(RAM)):
+        RAM[i] = 0
+    PC = 0
+    display_ram()
+    switch_led(PC, frame='address')
+    switch_led(RAM[PC], frame='data')
+
 def remove_err(sender):
     #removes the error tag
     edit_text.tag_delete("error")
@@ -874,11 +882,13 @@ label_status.pack()
 text_RAM = tk.Text(frame_dbg, width=32, height=32, bg='black', fg='green')
 text_RAM.tag_config("pc", background="yellow")
 text_RAM.bind("<Double-Button-1>", dbg_setpc)
-text_RAM.pack()
+text_RAM.pack(pady = 10)
 
 hex_cb = ttk.Checkbutton(frame_dbg, variable=iv_hex, text="Hexadecimal mode", onvalue=1, offvalue=0, command=change_hexmode)
 hex_cb.pack()
 
+clearmem_btn = ttk.Button(frame_dbg, text="! Clear Memory !", command=clearmem)
+clearmem_btn.pack(pady = 10)
 
 ttk.Button(frame_edit, text='Quit', command=quit).pack()
 
