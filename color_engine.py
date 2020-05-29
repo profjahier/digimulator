@@ -2,7 +2,6 @@
 # digirule 2A simulator 
 # Licence GNU General Public License v3.0
 
-import tkinter as tk
 from assemble import Assemble
 import re
 

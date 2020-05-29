@@ -11,7 +11,7 @@ from random import randint
 from converter import b2d, d2b, d2h  # functions to convert from one base to another
 from assemble import Assemble
 import color_engine as engine
-
+from indentator import indent
 
 with open('config.txt', 'r', encoding='utf-8') as f:
     config = f.readlines()
@@ -876,15 +876,18 @@ def on_key_pressed(event):
     remove_err(event)
     engine.update_current_line(edit_text)
 
+    if event.keysym == "Return":
+        indent(edit_text)
+
 
 def on_paste(event):
     """
     Callback method for <<Paste>> event. This will trigger a complete update of the code's coloration
     """
-    edit_text.after(30, recolor)
+    edit_text.after(30, recolor_after)
 
 
-def recolor():
+def recolor_after():
     """
     Callback method. This calls the format_all method of the color engine
     """
@@ -894,8 +897,19 @@ def recolor():
 engine.configure(edit_text)  # Configuration of the color engine (binds tags to colors)
 engine.format_all(edit_text)  # Initial format
 
-edit_text.bind("<KeyPress>", on_key_pressed)
+edit_text.bind("<KeyRelease>", on_key_pressed)
 edit_text.bind("<<Paste>>", on_paste)
+
+
+# Indent process
+def on_return(event):
+    """
+    Callback method for Return press. Calls the indent method
+    """
+    indent(edit_text)
+
+
+#edit_text.bind("<KeyRelease-Return>", on_return)
 
 # debugger GUI
 
