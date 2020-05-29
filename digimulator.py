@@ -774,8 +774,7 @@ def quit():
 
 digirule = tk.Tk()
 digirule.style = ttk.Style()
-bg = digirule.style.lookup('TFrame', 'background')
-digirule.configure(background=bg)
+digirule.configure(background='#d9d9d9')
 digirule.style.theme_use("alt")
 digirule.title("DIGIMULATOR : simulates a digirule 2A")
 frame_left = ttk.Frame(digirule)
