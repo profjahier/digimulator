@@ -3,7 +3,7 @@
 # Olivier Lécluse
 # Thomas Lécluse
 # digirule 2A simulator 
-# Licence CC-BY-NC-SA
+# Licence GNU General Public License v3.0
 
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -18,6 +18,14 @@ with open('config.txt', 'r', encoding='utf-8') as f:
 COLOR_DATA_LED = config[0].split(',')[0]
 COLOR_ADDRESS_LED = config[1].split(',')[0]
 COLOR_OFF = config[2].split(',')[0]
+
+# Global variables definitions
+RAM = [0]*256 # empty 256 byte RAM
+idle = True
+pause = 1
+accu = 0
+load_mode, save_mode = False, False
+flash_memory = []
 
 REG_STATUS = 252
 REG_BUTTON = 253
@@ -618,14 +626,13 @@ def btn_i_released(i):
 
 def reset():
     """ sets the environment when digirule starts """
-    global SP,PC, run_mode, RAM, flash_memory, pause, accu, load_mode, save_mode, idle
+    global SP,PC, run_mode, flash_memory, pause, accu, load_mode, save_mode, idle
     pause = 1 # pause (in s) between 2 executions on run_mode
     PC = 0 # Program Counter => address of RAM
     SP = 0 # Stack Pointer
     OSP = 0
     switch_led(PC, frame='address')
     run_mode, load_mode, save_mode = False, False, False
-    RAM = [0]*256 # empty 256 byte RAM
     switch_led(RAM[PC], frame='data')
     accu = 0 # accumulator register
     idle = True
