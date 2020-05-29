@@ -12,6 +12,7 @@ from converter import b2d, d2b, d2h  # functions to convert from one base to ano
 from assemble import Assemble
 import color_engine as engine
 from indentator import indent
+from line_numbers import LineNumberCanvas
 
 with open('config.txt', 'r', encoding='utf-8') as f:
     config = f.readlines()
@@ -801,7 +802,7 @@ frame_ram = ttk.Frame(frame_dbg)
 frame_ram.pack()
 
 # Interface digirule
-frame_run= ttk.Frame(frame_dr)
+frame_run = ttk.Frame(frame_dr)
 frame_run.pack()
 btn_run = ttk.Button(frame_run, text='Run/Stop ', command=run)
 btn_run.pack(side=tk.LEFT)
@@ -853,15 +854,15 @@ for i in range(7, -1, -1):
 
 # editor GUI
 error_sv = tk.StringVar()
-frame_txt = ttk.Frame(frame_edit, width=600, height=500)
+frame_txt = ttk.Frame(frame_edit, width=625, height=500)
 frame_txt.pack(fill="both", expand=True)
 frame_txt.grid_propagate(False)
 frame_txt.grid_rowconfigure(0, weight=1)
 frame_txt.grid_columnconfigure(0, weight=1)
 edit_text = tk.Text(frame_txt, width=80, height=25, background='black', fg='green', insertbackground='yellow')
-edit_text.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+edit_text.grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
 scrollb = ttk.Scrollbar(frame_txt, command=edit_text.yview)
-scrollb.grid(row=0, column=1, sticky='nsew')
+scrollb.grid(row=0, column=2, sticky='nsew')
 edit_text['yscrollcommand'] = scrollb.set
 edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords")
 assemble_btn = ttk.Button(frame_edit, text="Assemble", command=assemble)
@@ -869,6 +870,8 @@ assemble_btn.pack()
 error_lbl = ttk.Label(frame_edit, textvariable=error_sv)
 error_lbl.pack()
 
+linenumbers = LineNumberCanvas(edit_text, frame_txt, width=25)
+linenumbers.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 
 # Color Engine
 def on_key_pressed(event):
@@ -880,6 +883,8 @@ def on_key_pressed(event):
 
     if event.keysym == "Return":  # Indent process
         indent(edit_text)
+
+    linenumbers.re_render()
 
 
 def on_paste(event):
@@ -894,6 +899,7 @@ def recolor_after():
     Callback method. This calls the format_all method of the color engine
     """
     engine.format_all(edit_text)
+    linenumbers.re_render()
 
 
 engine.configure(edit_text)  # Configuration of the color engine (binds tags to colors)
