@@ -860,7 +860,6 @@ assemble_btn = ttk.Button(frame_edit, text="Assemble", command=assemble)
 assemble_btn.pack()
 error_lbl = ttk.Label(frame_edit, textvariable=error_sv)
 error_lbl.pack()
-edit_text.bind("<Key>", remove_err)
 
 
 # Color Engine
@@ -868,7 +867,9 @@ def on_key_pressed(event):
     """
     Callback method for the color update event. Calls for an update on the cursors' position line
     """
+    remove_err(event)
     engine.update_current_line(edit_text)
+
 
 
 engine.configure(edit_text)
