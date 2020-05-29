@@ -11,6 +11,7 @@ from random import randint
 from converter import b2d, d2b, d2h  # functions to convert from one base to another
 from assemble import Assemble
 import color_engine as engine
+from threading import Thread
 
 
 with open('config.txt', 'r', encoding='utf-8') as f:
@@ -881,8 +882,9 @@ def on_paste(event):
     """
     Callback method for ctrl+v event
     """
-    print("ici")
-    engine.format_all(edit_text)
+    t = Thread(target=engine.format_all, args=(edit_text, ))
+    t.daemon = True
+    t.start()
 
 
 engine.configure(edit_text)  # Configuration of the color engine (binds tags to colors)
