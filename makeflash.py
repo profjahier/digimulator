@@ -1,5 +1,8 @@
 # Fabrication flash
 # Olivier Lecluse
+# Ronan Jahier
+# digirule 2A simulator 
+# Licence GNU General Public License v3.0
 
 killTheBit = [2,32,3,1,255,22,255,6,253,17,255,5,255,28,5]
 luminos = [2,129,25,2,252,3,0,255,3,255,254,3,24,255,3,124,254,3,60,255,3,60,254,3,124,255,3,24,254,3,255,255,3,0,254,3,124,255,3,24,254,3,60,255,3,60,254,3,24,255,3,124,254,28,5]

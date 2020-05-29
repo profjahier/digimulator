@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Ronan Jahier
+# digirule 2A simulator 
+# Licence GNU General Public License v3.0
+
 def b2d(b):
     """ convertit une chaine de 8 bits en nb décimal 
      entrée : b = chaine de 8 caractères ('0' ou '1') 

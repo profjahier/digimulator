@@ -3,7 +3,7 @@
 # Olivier Lécluse
 # Thomas Lécluse
 # digirule 2A simulator 
-# Licence CC-BY-NC-SA
+# Licence GNU General Public License v3.0
 
 import tkinter as tk
 import tkinter.ttk as ttk

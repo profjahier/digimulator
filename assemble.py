@@ -1,6 +1,8 @@
 # Assembler for digirule 2A
-# Olivier Lecluse
-# Licence CC CC-BY-NC-SA
+# Ronan Jahier
+# Olivier Lécluse
+# Thomas Lécluse
+# Licence GNU General Public License v3.0
 
 class Assemble:
     def __init__(self, text):

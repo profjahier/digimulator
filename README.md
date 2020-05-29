@@ -1,5 +1,5 @@
 # digimulator
-Simulator of **digirule 2** (https://bradsprojects.com/digirule2/) written in Python (by roro &amp; wawa)
+Simulator of **digirule 2** (https://bradsprojects.com/digirule2/) written in Python (by roro &amp; wawa &amp; toto)
 
 # Instruction set
 
@@ -42,6 +42,5 @@ Comments begin with `//`
 ## Numbers 
 
 Numbers are 8 bits long and can be in decimal (`127` for example) or in binary , beginning with `0b` (`0b11110101` for example).
-
-<img src="licence.png" alt="licence CC-BY-NC-SA" height="30"/>
-
+---
+GNU General Public License v3.0
