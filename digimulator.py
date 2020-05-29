@@ -784,6 +784,8 @@ digirule.style = ttk.Style()
 digirule.configure(background='#d9d9d9')
 digirule.style.theme_use("alt")
 digirule.title("DIGIMULATOR : simulates a digirule 2A")
+digirule.resizable(0, 0)
+
 frame_left = ttk.Frame(digirule)
 frame_left.pack(side=tk.LEFT)
 frame_dr = ttk.Frame(frame_left)
