@@ -11,7 +11,6 @@ from random import randint
 from converter import b2d, d2b, d2h  # functions to convert from one base to another
 from assemble import Assemble
 import color_engine as engine
-from threading import Thread
 
 
 with open('config.txt', 'r', encoding='utf-8') as f:
@@ -880,13 +879,16 @@ def on_key_pressed(event):
 
 def on_paste(event):
     """
-    Callback method for ctrl+v event
+    Callback method for <<Paste>> event. This will trigger a complete update of the code's coloration
     """
-    t = Thread(target=engine.format_all, args=(edit_text, ))
-    t.daemon = True
-    t.start()
+    edit_text.after(30, recolor)
 
-    print("ici")
+
+def recolor():
+    """
+    Callback method. This calls the format_all method of the color engine
+    """
+    engine.format_all(edit_text)
 
 
 engine.configure(edit_text)  # Configuration of the color engine (binds tags to colors)
