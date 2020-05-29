@@ -1,14 +1,17 @@
 #!/usr/bin/python3
 # Ronan Jahier
-# Olivier Lecluse
+# Olivier Lécluse
+# Thomas Lécluse
 # digirule 2A simulator 
 # Licence CC-BY-NC-SA
 
 import tkinter as tk
 import tkinter.ttk as ttk
 from random import randint
-from converter import b2d, d2b, d2h # functions to convert from one base to another
+from converter import b2d, d2b, d2h  # functions to convert from one base to another
 from assemble import Assemble
+import color_engine as engine
+
 
 with open('config.txt', 'r', encoding='utf-8') as f:
     config = f.readlines()
@@ -715,7 +718,7 @@ def change_hexmode():
 
 def assemble():
     global PC
-    a = Assemble(edit_text.get("1.0",tk.END))
+    a = Assemble(edit_text.get("1.0", tk.END))
     res = a.parse()
     if res[0]:
         # No error during assembly process
@@ -724,7 +727,7 @@ def assemble():
         error_sv.set("Success ! program occupation :"+str(len(assembled_ram))+"/255")
         # copy assembled program in RAM
         for i in range(len(assembled_ram)):
-            RAM[i]=assembled_ram[i]
+            RAM[i] = assembled_ram[i]
         PC = 0
         display_ram()
         switch_led(PC, frame='address')
@@ -733,18 +736,19 @@ def assemble():
         error_sv.set(res[1])
         error_line = res[2]
         if error_line != 0:
-            edit_text.mark_set("err_line_begin", "%d.0"%error_line)
-            edit_text.mark_set("err_line_end", "%d.end"%error_line)
+            edit_text.mark_set("err_line_begin", "%d.0" % error_line)
+            edit_text.mark_set("err_line_end", "%d.end" % error_line)
             edit_text.tag_add("error", "err_line_begin", "err_line_end")
             edit_text.tag_config("error", background="red")
         else:
             index = edit_text.search(res[3], "1.0", nocase=1)
-            l,c = index.split(".")
+            l, c = index.split(".")
             c = str(int(c)+len(res[3]))
             edit_text.mark_set("err_line_begin", index)
             edit_text.mark_set("err_line_end", l+"."+c)
             edit_text.tag_add("error", "err_line_begin", "err_line_end")
             edit_text.tag_config("error", background="orange")
+
 
 def clearmem():
     for i in range(len(RAM)):
@@ -754,9 +758,11 @@ def clearmem():
     switch_led(PC, frame='address')
     switch_led(RAM[PC], frame='data')
 
+
 def remove_err(sender):
     #removes the error tag
     edit_text.tag_delete("error")
+
 
 def quit():
     digirule.quit()
@@ -831,7 +837,7 @@ for i in range(8):
 
 frame_btn = ttk.Frame(frame_dr, width=340)
 frame_btn.pack()
-for i in range(7,-1,-1):
+for i in range(7, -1, -1):
     btn = ttk.Button(frame_btn, text=str(i), width=4, command=lambda i=i:btn_i(i))
     btn.pack(side=tk.LEFT)
     btn.bind("<ButtonPress>", lambda sender, i=i:btn_i_pressed(i))
@@ -839,7 +845,7 @@ for i in range(7,-1,-1):
 
 # editor GUI
 error_sv = tk.StringVar()
-frame_txt = ttk.Frame(frame_edit,width=600, height=500)
+frame_txt = ttk.Frame(frame_edit, width=600, height=500)
 frame_txt.pack(fill="both", expand=True)
 frame_txt.grid_propagate(False)
 frame_txt.grid_rowconfigure(0, weight=1)
@@ -849,12 +855,27 @@ edit_text.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 scrollb = ttk.Scrollbar(frame_txt, command=edit_text.yview)
 scrollb.grid(row=0, column=1, sticky='nsew')
 edit_text['yscrollcommand'] = scrollb.set
-edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords")
+edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords return\nreturn treturn  nope halt return\nhalt ddreturnfdfg haltt //dsgf fff\ncoucou DECR")
 assemble_btn = ttk.Button(frame_edit, text="Assemble", command=assemble)
 assemble_btn.pack()
-error_lbl = ttk.Label(frame_edit, textvariable = error_sv)
+error_lbl = ttk.Label(frame_edit, textvariable=error_sv)
 error_lbl.pack()
 edit_text.bind("<Key>", remove_err)
+
+
+# Color Engine
+def on_key_pressed(event):
+    """
+    Callback method for the color update event. Calls for an update on the cursors' position line
+    """
+    engine.update_current_line(edit_text)
+
+
+engine.configure(edit_text)
+engine.format_all(edit_text)
+
+edit_text.bind("<KeyPress>", on_key_pressed)
+
 
 # debugger GUI
 
@@ -882,16 +903,16 @@ label_status.pack()
 text_RAM = tk.Text(frame_dbg, width=32, height=32, bg='black', fg='green')
 text_RAM.tag_config("pc", background="yellow")
 text_RAM.bind("<Double-Button-1>", dbg_setpc)
-text_RAM.pack(pady = 10)
+text_RAM.pack(pady=10)
 
 hex_cb = ttk.Checkbutton(frame_dbg, variable=iv_hex, text="Hexadecimal mode", onvalue=1, offvalue=0, command=change_hexmode)
 hex_cb.pack()
 
 clearmem_btn = ttk.Button(frame_dbg, text="! Clear Memory !", command=clearmem)
-clearmem_btn.pack(pady = 10)
+clearmem_btn.pack(pady=10)
 
 ttk.Button(frame_edit, text='Quit', command=quit).pack()
 
-reset() # sets the environment when digirule starts
+reset()  # sets the environment when digirule starts
 digirule.mainloop()
-
+print("Goodbye!")
