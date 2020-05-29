@@ -1,11 +1,13 @@
 %define status_reg  252
 %define dataLED_reg 255
+%define pi          248
+
 %define ZFlag       0
 %define PFlag       3
 %define Carry       1
 
 initsp
-speed 1
+speed 0
 
 // prime numbers 
 copylr 2 pi // 2 and 3 are primes and not computed
@@ -13,7 +15,7 @@ copylr 5 nb // start of prime search
 :primeloop
     call prime_test
     bcrsc PFlag status_reg
-    call isprime
+    jump isprime
 :pl1
     cbr ZFlag status_reg
     incr nb 
@@ -22,15 +24,12 @@ copylr 5 nb // start of prime search
     incr nb
     jump primeloop
 :isprime
-    incr pi
     copyrr nb dataLED_reg
+    incr pi
     jump pl1
 :the_end
-    copyrr pi dataLED_reg
     halt
 
-:isprime
-     
 
 :prime_test
 // Tests if nb is prime
@@ -48,7 +47,6 @@ copylr 5 nb // start of prime search
     bcrss ZFlag status_reg
     jump loopdiv
 // Number is prime
-    copyrr nb dataLED_reg
     sbr PFlag status_reg
     return
 :not_prime
@@ -78,4 +76,3 @@ copylr 5 nb // start of prime search
 %data r1 0
 %data nb 0
 %data dv 0
-%data pi 0
