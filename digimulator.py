@@ -870,12 +870,19 @@ def on_key_pressed(event):
     engine.update_current_line(edit_text)
 
 
+def on_paste(event):
+    """
+    Callback method for ctrl+v event
+    """
+    print("ici")
+    engine.format_all(edit_text)
 
-engine.configure(edit_text)
-engine.format_all(edit_text)
+
+engine.configure(edit_text)  # Configuration of the color engine (binds tags to colors)
+engine.format_all(edit_text)  # Initial format
 
 edit_text.bind("<KeyPress>", on_key_pressed)
-
+edit_text.bind("<Control-v>", on_paste)
 
 # debugger GUI
 
