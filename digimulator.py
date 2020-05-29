@@ -647,10 +647,10 @@ def show_ram():
     global view_ram
     view_ram = not view_ram
     if view_ram:
-        btn_dbg.configure(relief=tk.SUNKEN)
+        btn_dbg.configure(relief=tk.SUNKEN, text='Hide RAM')
         display_ram()
     else:
-        btn_dbg.configure(relief=tk.RAISED)
+        btn_dbg.configure(relief=tk.RAISED, text='Show RAM')
         text_RAM.config(state=tk.NORMAL)
         text_RAM.delete("1.0",tk.END)
 
@@ -805,7 +805,7 @@ can_run = tk.Canvas(frame_state, width=30, height=10, bg='black')
 can_run.pack(side=tk.TOP)
 can_stop = tk.Canvas(frame_state, width=30, height=10, bg='red')
 can_stop.pack(side=tk.BOTTOM)
-btn_dbg = tk.Button(frame_run, text='Hide RAM ', command=show_ram)
+btn_dbg = tk.Button(frame_run, text='Hide RAM', command=show_ram, relief=tk.SUNKEN)
 btn_dbg.pack(side=tk.LEFT)
 frame_goto = ttk.Frame(frame_dr)
 frame_goto.pack()
@@ -855,7 +855,7 @@ edit_text.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 scrollb = ttk.Scrollbar(frame_txt, command=edit_text.yview)
 scrollb.grid(row=0, column=1, sticky='nsew')
 edit_text['yscrollcommand'] = scrollb.set
-edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords return\nreturn treturn  nope halt return\nhalt ddreturnfdfg haltt //dsgf fff\ncoucou DECR")
+edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords")
 assemble_btn = ttk.Button(frame_edit, text="Assemble", command=assemble)
 assemble_btn.pack()
 error_lbl = ttk.Label(frame_edit, textvariable=error_sv)
