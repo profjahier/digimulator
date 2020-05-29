@@ -878,7 +878,7 @@ def on_key_pressed(event):
     remove_err(event)
     engine.update_current_line(edit_text)
 
-    if event.keysym == "Return":
+    if event.keysym == "Return":  # Indent process
         indent(edit_text)
 
 
@@ -902,16 +902,6 @@ engine.format_all(edit_text)  # Initial format
 edit_text.bind("<KeyRelease>", on_key_pressed)
 edit_text.bind("<<Paste>>", on_paste)
 
-
-# Indent process
-def on_return(event):
-    """
-    Callback method for Return press. Calls the indent method
-    """
-    indent(edit_text)
-
-
-#edit_text.bind("<KeyRelease-Return>", on_return)
 
 # debugger GUI
 
