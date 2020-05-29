@@ -886,12 +886,14 @@ def on_paste(event):
     t.daemon = True
     t.start()
 
+    print("ici")
+
 
 engine.configure(edit_text)  # Configuration of the color engine (binds tags to colors)
 engine.format_all(edit_text)  # Initial format
 
 edit_text.bind("<KeyPress>", on_key_pressed)
-edit_text.bind("<Control-v>", on_paste)
+edit_text.bind("<<Paste>>", on_paste)
 
 # debugger GUI
 
