@@ -18,6 +18,7 @@ with open('config.txt', 'r', encoding='utf-8') as f:
 COLOR_DATA_LED = config[0].split(',')[0]
 COLOR_ADDRESS_LED = config[1].split(',')[0]
 COLOR_OFF = config[2].split(',')[0]
+BGCOLOR = config[3].split(',')[0]
 
 # Global variables definitions
 RAM = [0]*256 # empty 256 byte RAM
@@ -98,10 +99,11 @@ def execute(mnemo):
         can_stop['bg'] = 'red'
     def stack_in(p):
         global SP
-        stack[SP] = PC
-        SP += 1 # saves the address where to go after the next RETURN or RETURNLA
         if SP >= STACK_DEPTH:
         	halt() # stack overflow
+        stack[SP] = PC
+        SP += 1 # saves the address where to go after the next RETURN or RETURNLA
+        
     def stack_out():
         global SP
         SP -= 1
@@ -781,12 +783,13 @@ def quit():
 
 digirule = tk.Tk()
 digirule.style = ttk.Style()
-digirule.configure(background='#d9d9d9')
+digirule.style.configure('TFrame', background='green')
+digirule.config(bg=BGCOLOR)
 digirule.style.theme_use("alt")
 digirule.title("DIGIMULATOR : simulates a digirule 2A")
 digirule.resizable(0, 0)
 
-frame_left = ttk.Frame(digirule)
+frame_left = ttk.Frame(digirule, style='TFrame')
 frame_left.pack(side=tk.LEFT)
 frame_dr = ttk.Frame(frame_left)
 frame_dr.pack(side=tk.TOP)
