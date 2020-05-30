@@ -859,11 +859,11 @@ for i in range(7, -1, -1):
 error_sv = tk.StringVar()
 frame_txt = ttk.Frame(frame_edit, width=630, height=500)
 frame_txt.pack(fill="both", expand=True)
-frame_txt.grid_propagate(False)
+frame_txt.grid_propagate(True)
 frame_txt.grid_rowconfigure(0, weight=1)
 frame_txt.grid_columnconfigure(0, weight=1)
 # Editor
-edit_text = tk.Text(frame_txt, height=25, background='black', fg='green', insertbackground='yellow', wrap=tk.NONE)
+edit_text = tk.Text(frame_txt, width=70, height=25, background='black', fg='green', insertbackground='yellow', wrap=tk.NONE)
 edit_text.grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
 # Line numbers
 linenumbers = LineNumberWidget(edit_text, frame_txt, width=3, state="disable")
