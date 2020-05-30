@@ -5,7 +5,7 @@
 import tkinter as tk
 
 
-class LineNumberCanvas(tk.Canvas):
+class LineNumberWidget(tk.Text):
     def __init__(self, text_field, *args, **kwargs):
         """
         Widget managing display of line numbers next to the text editor.
@@ -14,25 +14,21 @@ class LineNumberCanvas(tk.Canvas):
         :param args:
         :param kwargs:
         """
-        tk.Canvas.__init__(self, *args, **kwargs)
+        tk.Text.__init__(self, *args, **kwargs)
         self.text_widget = text_field
-
-        for key in ("<MouseWheel>", "<ButtonRelease-1>", "<Motion>"):
-            self.text_widget.bind(key, self.re_render)
+        self.prev_posi = None
 
     def re_render(self, event=None):
         """
         Re-render the line canvas
         """
-        self.delete('all')  # To prevent drawing over the previous canvas
+        self.config(state="normal")  # Authorize edition
+        self.delete('1.0', 'end')  # To prevent drawing over the previous canvas
 
-        temp = self.text_widget.index("@0,0")  # Start at the beginning
-        while True:
-            dline = self.text_widget.dlineinfo(temp)
-            if dline is None:
-                break
-            y = dline[1]
+        nb_of_lines = len(self.text_widget.get('1.0', 'end').split("\n"))
 
-            self.create_text(2, y, anchor="nw", text=str(temp).split(".")[0])
+        for line_nb in range(nb_of_lines - 1):  # Starts at 0, so we add one when display
+            self.insert("end", str(line_nb + 1) + "\n")
 
-            temp = self.text_widget.index("%s+1line" % temp)
+        self.delete(str(nb_of_lines) + ".0", 'end')  # remove the last \n
+        self.config(state="disabled")  # Disable edition

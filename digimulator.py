@@ -12,7 +12,7 @@ from converter import b2d, d2b, d2h  # functions to convert from one base to ano
 from assemble import Assemble
 import color_engine as engine
 from indentator import indent
-from line_numbers import LineNumberCanvas
+from line_numbers import LineNumberWidget
 
 with open('config.txt', 'r', encoding='utf-8') as f:
     config = f.readlines()
@@ -857,24 +857,58 @@ for i in range(7, -1, -1):
 
 # editor GUI
 error_sv = tk.StringVar()
-frame_txt = ttk.Frame(frame_edit, width=625, height=500)
+frame_txt = ttk.Frame(frame_edit, width=630, height=500)
 frame_txt.pack(fill="both", expand=True)
 frame_txt.grid_propagate(False)
 frame_txt.grid_rowconfigure(0, weight=1)
 frame_txt.grid_columnconfigure(0, weight=1)
+# Editor
 edit_text = tk.Text(frame_txt, width=80, height=25, background='black', fg='green', insertbackground='yellow')
 edit_text.grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
-scrollb = ttk.Scrollbar(frame_txt, command=edit_text.yview)
+# Line numbers
+linenumbers = LineNumberWidget(edit_text, frame_txt, width=30)
+linenumbers.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+
+previous_moveto = None
+
+
+# Scroll bar
+def on_scrollbar(*args):
+    """
+    Scrolls both the editor and the line numbers text widgets
+    """
+    edit_text.yview(*args)
+    linenumbers.yview(*args)
+
+
+def on_textscroll(*args):
+    """
+    Moves the scrollbar and scrolls the editor and the line numbers text widgets
+    """
+    scrollb.set(*args)
+    on_scrollbar('moveto', args[0])
+    linenumbers.prev_posi = args[0]  # Save this position in case we perform a re_render on the line numbers
+
+
+scrollb = ttk.Scrollbar(frame_txt, command=on_scrollbar)
+edit_text['yscrollcommand'] = on_textscroll
 scrollb.grid(row=0, column=2, sticky='nsew')
-edit_text['yscrollcommand'] = scrollb.set
+
+
+def update_line_numbers():
+    """
+    Calls a re-render on the line numbers widget and scrolls back to the current posiiton
+    """
+    linenumbers.re_render()
+    on_scrollbar('moveto', linenumbers.prev_posi)  # Scroll back to previous position
+
+
 edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords")
 assemble_btn = ttk.Button(frame_edit, text="Assemble", command=assemble)
 assemble_btn.pack()
 error_lbl = ttk.Label(frame_edit, textvariable=error_sv)
 error_lbl.pack()
 
-linenumbers = LineNumberCanvas(edit_text, frame_txt, width=25)
-linenumbers.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 
 # Color Engine
 def on_key_pressed(event):
@@ -887,7 +921,8 @@ def on_key_pressed(event):
     if event.keysym == "Return":  # Indent process
         indent(edit_text)
 
-    linenumbers.re_render()
+    if event.keysym in ("Return", "Delete", "BackSpace"):
+        update_line_numbers()
 
 
 def on_paste(event):
@@ -902,7 +937,7 @@ def recolor_after():
     Callback method. This calls the format_all method of the color engine
     """
     engine.format_all(edit_text)
-    linenumbers.re_render()
+    update_line_numbers()  # After a paste we re-render the line numbers
 
 
 engine.configure(edit_text)  # Configuration of the color engine (binds tags to colors)
