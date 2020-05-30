@@ -1,13 +1,13 @@
-// Complement a 2
+/ Complement a 2
 // Olivier Lecluse
 // Utiliser les boutons pour choisir un nombre			
 // Le complément a2 s’affiche en temps réel
 
-%define	statusReg	   252
+%define	statusReg	 252
 %define	buttonReg    253
-%define	addLEDReg	   254
-%define	dataLEDReg	  255
-%define	zeroFlag	    0
+%define	addLEDReg	 254
+%define	dataLEDReg	 255
+%define	zeroFlag	 0
 
 initsp
 speed 1
@@ -29,10 +29,18 @@ sbr 2 statusReg // Autorise l’écriture sur les LED d’adresses
     call wait
     jump debut
 
-// Boucle d’attente de 128 tours
+// Boucle d’attente de 10*255 tours sur la vraie DGR
 :wait
-    copylr 128 loopTouche
+    copylr 9 loopTouche
 :waitloop
+    copylr 7 loopTouche1
+    :waitloop1
+        decrjz loopTouche1
+        jump waitloop1
     decrjz loopTouche
     jump waitloop
     return
+
+%data lastData    0
+%data loopTouche  0
+%data loopTouche1 0
