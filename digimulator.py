@@ -107,10 +107,10 @@ def execute(mnemo):
         
     def stack_out():
         global SP
-        SP -= 1
-        s = stack[SP]
         if SP < 0:
             halt() # stack underflow
+        SP -= 1
+        s = stack[SP]
         return s
     	
     global run_mode, PC, pause, accu, SP, OSP
