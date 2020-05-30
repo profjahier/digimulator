@@ -863,13 +863,11 @@ frame_txt.grid_propagate(False)
 frame_txt.grid_rowconfigure(0, weight=1)
 frame_txt.grid_columnconfigure(0, weight=1)
 # Editor
-edit_text = tk.Text(frame_txt, width=80, height=25, background='black', fg='green', insertbackground='yellow')
+edit_text = tk.Text(frame_txt, height=25, background='black', fg='green', insertbackground='yellow', wrap=tk.NONE)
 edit_text.grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
 # Line numbers
-linenumbers = LineNumberWidget(edit_text, frame_txt, width=30)
+linenumbers = LineNumberWidget(edit_text, frame_txt, width=3, state="disable")
 linenumbers.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
-
-previous_moveto = None
 
 
 # Scroll bar
@@ -900,7 +898,8 @@ def update_line_numbers():
     Calls a re-render on the line numbers widget and scrolls back to the current posiiton
     """
     linenumbers.re_render()
-    on_scrollbar('moveto', linenumbers.prev_posi)  # Scroll back to previous position
+    if linenumbers.prev_posi:
+        on_scrollbar('moveto', linenumbers.prev_posi)  # Scroll back to previous position
 
 
 edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords")
@@ -942,6 +941,7 @@ def recolor_after():
 
 engine.configure(edit_text)  # Configuration of the color engine (binds tags to colors)
 engine.format_all(edit_text)  # Initial format
+update_line_numbers()  # First line update
 
 edit_text.bind("<KeyRelease>", on_key_pressed)
 edit_text.bind("<<Paste>>", on_paste)
