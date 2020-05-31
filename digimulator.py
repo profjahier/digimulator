@@ -13,6 +13,9 @@ from assemble import Assemble
 import color_engine as engine
 from indentator import indent
 from line_numbers import LineNumberWidget
+from dgrserial import ram2hex
+import serial
+import serial.tools.list_ports as list_ports
 
 with open('config.txt', 'r', encoding='utf-8') as f:
     config = f.readlines()
@@ -34,6 +37,9 @@ REG_BUTTON = 253
 REG_ADDRESS = 254
 REG_ADATA = 255
 
+TIMEOUT = 0.1 # Detection port serie
+PID_FTDI = 24577
+VID_FTDI = 1027
 debug = False
 run_mode = False
 view_ram = True
@@ -786,6 +792,39 @@ def remove_err(sender):
 def quit():
     digirule.quit()
     digirule.destroy()
+
+#
+# Serial communication
+#
+def export():
+    dump = ram2hex(RAM)
+    mb_serie = find_comport(PID_FTDI, VID_FTDI, 2400)
+    if mb_serie:
+        mb_serie.open()
+        for line in dump.splitlines():
+            mb_serie.write(line.encode("utf-8"))
+        mb_serie.close()
+    else:
+        print("No USB UART interface detected")
+
+def find_comport(pid, vid, baud):
+    ''' return a serial port '''
+    ser_port = serial.Serial(timeout=TIMEOUT)
+    ser_port.baudrate = baud
+    ports = list(list_ports.comports())
+    print('scanning ports')
+    for p in ports:
+        print('port: {}'.format(p))
+        try:
+            print('pid: {} vid: {}'.format(p.pid, p.vid))
+        except AttributeError:
+            continue
+        if (p.pid == pid) and (p.vid == vid):
+            print('found target device pid: {} vid: {} port: {}'.format(
+                p.pid, p.vid, p.device))
+            ser_port.port = str(p.device)
+            return ser_port
+    return None
 #
 # Interface
 #
@@ -840,6 +879,8 @@ btn_load = ttk.Button(frame_file, text='Load', command=load)
 btn_load.pack(side=tk.LEFT)
 btn_save = ttk.Button(frame_file, text='Save', command=save)
 btn_save.pack(side=tk.LEFT)
+btn_export = ttk.Button(frame_file, text='to Digirule', command=export)
+btn_export.pack(side=tk.LEFT)
 speed_rule = ttk.Scale(frame_dr, from_=0, to=1000, orient=tk.HORIZONTAL, length=300, command=change_speed)
 speed_rule.pack()
 frame_address = ttk.Frame(frame_dr)

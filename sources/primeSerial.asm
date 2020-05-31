@@ -38,7 +38,7 @@ copylr 5 nb // start of prime search
     comout
     copyra ascii_str2
     comout
-    copyla 10
+    copyla 32
     comout
     // searching next prime 
     incr pi
