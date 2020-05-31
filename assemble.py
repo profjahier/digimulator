@@ -63,6 +63,8 @@ class Assemble:
             "popi": {"code": 50, "operandCount": 1},
             "head": {"code": 51, "operandCount": 0},
             "depth": {"code": 52, "operandCount": 0},
+            "comout": {"code": 192, "operandCount": 0},
+            "comin": {"code": 193, "operandCount": 0},
         }
         self.labelAddressByName = {}
 

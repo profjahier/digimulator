@@ -435,6 +435,15 @@ def execute(mnemo):
         sv_inst.set("DEPTH")
         accu = OSP
         status_Z(accu)
+    elif mnemo == 192:
+        sv_inst.set("COMOUT")
+        if accu == 10:
+            print()
+        else:
+            print(chr(accu), end="")
+    elif mnemo == 193:
+        sv_inst.set("COMIN")
+        accu = int(input("entrer donnee"))
     else: # digirule program stops if unknown mnemonic
         execute(0) 
     
