@@ -17,6 +17,7 @@ from dgrserial import ram2hex, comport
 from tkinter import messagebox
 import sys
 import serial
+from time import sleep
 
 with open('config.txt', 'r', encoding='utf-8') as f:
     config = f.readlines()
@@ -828,6 +829,8 @@ def export():
         else:
             for line in dump.splitlines():
                 dgr_serial.write(line.encode("utf-8"))
+                sleep(0.1)
+            sleep(2)
             dgr_serial.close()
             error_sv.set("Memory sent")
             answer = messagebox.askyesno("Question","Is the transfert OK ??")
