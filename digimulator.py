@@ -13,9 +13,8 @@ from assemble import Assemble
 import color_engine as engine
 from indentator import indent
 from line_numbers import LineNumberWidget
-from dgrserial import ram2hex
-import serial
-import serial.tools.list_ports as list_ports
+from dgrserial import ram2hex, comport
+from tkinter import messagebox
 
 with open('config.txt', 'r', encoding='utf-8') as f:
     config = f.readlines()
@@ -37,13 +36,12 @@ REG_BUTTON = 253
 REG_ADDRESS = 254
 REG_ADATA = 255
 
-TIMEOUT = 0.1 # Detection port serie
-PID_FTDI = 24577
-VID_FTDI = 1027
 debug = False
 run_mode = False
 view_ram = True
 PC = 0
+DIGIRULE_USB = ""
+
 # Stack variables
 STACK_DEPTH = 4
 OPSTACK_DEPTH = 256
@@ -797,34 +795,25 @@ def quit():
 # Serial communication
 #
 def export():
-    dump = ram2hex(RAM)
-    mb_serie = find_comport(PID_FTDI, VID_FTDI, 2400)
-    if mb_serie:
-        mb_serie.open()
-        for line in dump.splitlines():
-            mb_serie.write(line.encode("utf-8"))
-        mb_serie.close()
-    else:
-        print("No USB UART interface detected")
+    global DIGIRULE_USB
 
-def find_comport(pid, vid, baud):
-    ''' return a serial port '''
-    ser_port = serial.Serial(timeout=TIMEOUT)
-    ser_port.baudrate = baud
-    ports = list(list_ports.comports())
-    print('scanning ports')
-    for p in ports:
-        print('port: {}'.format(p))
-        try:
-            print('pid: {} vid: {}'.format(p.pid, p.vid))
-        except AttributeError:
-            continue
-        if (p.pid == pid) and (p.vid == vid):
-            print('found target device pid: {} vid: {} port: {}'.format(
-                p.pid, p.vid, p.device))
-            ser_port.port = str(p.device)
-            return ser_port
-    return None
+    dump = ram2hex(RAM)
+    dgr_serial = comport(2400, digirule, port = DIGIRULE_USB)
+    if dgr_serial:
+        DIGIRULE_USB = dgr_serial.port
+        # print (DIGIRULE_USB)
+        dgr_serial.open()
+        for line in dump.splitlines():
+            dgr_serial.write(line.encode("utf-8"))
+        dgr_serial.close()
+        answer = messagebox.askyesno("Question","Is the transfert OK ??")
+        if not answer:
+            DIGIRULE_USB = ""
+    else:
+        # print("No USB UART interface detected")
+        DIGIRULE_USB = ""
+
+
 #
 # Interface
 #
