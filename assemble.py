@@ -148,6 +148,8 @@ class Assemble:
                 try:
                     if line[2][0:2] == '0b':
                         keywords[line[1]] = int(line[2], 2)
+                    elif line[2][0:2] == '0x':
+                        keywords[line[1]] = int(line[2], 16)
                     else:
                         keywords[line[1]] = int(line[2])
                 except:
@@ -159,6 +161,8 @@ class Assemble:
                     try:
                         if d[0:2] == '0b':
                             code = int(d, 2)
+                        elif d[0:2] == '0x':
+                            code = int(d, 16)
                         else:
                             code = int(d)
                     except:
@@ -196,6 +200,15 @@ class Assemble:
                         # the operand is a binary number
                         try:
                             n = int(o, 2)
+                            if not 0 <= n < 256:
+                                return error("too big number " + o, line[-1])
+                            ram.append(n)
+                        except ValueError:
+                            return error("bad argument type " + o, line[-1])
+                    elif o[0:2] == '0x':
+                        # the operand is a binary number
+                        try:
+                            n = int(o, 16)
                             if not 0 <= n < 256:
                                 return error("too big number " + o, line[-1])
                             ram.append(n)

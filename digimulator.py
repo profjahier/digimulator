@@ -14,7 +14,7 @@ import color_engine as engine
 from indentator import indent
 from line_numbers import LineNumberWidget
 from dgrserial import ram2hex, comport
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 import sys
 import serial
 from time import sleep
@@ -450,14 +450,24 @@ def execute(mnemo):
     elif mnemo == 192:
         decoded_inst=("COMOUT")
         if accu == 10:
-            print()
+            #print()
             error_sv.set("")
         else:
-            print(chr(accu), end="")
+            #print(chr(accu), end="")
             error_sv.set((error_sv.get()+chr(accu))[-LINEWIDTH-15:])
     elif mnemo == 193:
         decoded_inst=("COMIN")
-        accu = int(input("entrer donnee"))
+        try:
+        	answer = (simpledialog.askstring("Simulation on Serial COMIN", "Input one Byte",
+                                    parent=digirule))
+        	if answer[0:2] == "0x":
+        	    accu = int(answer,16)
+        	elif answer[0:2] == "0b":
+        	    accu = int(answer, 2)
+        	else:
+        	    accu = int(answer)
+        except:
+            accu = 0
     else: # digirule program stops if unknown mnemonic
         execute(0)
     if view_ram:
@@ -817,12 +827,12 @@ def quit():
 def export():
     global DIGIRULE_USB
 
-    error_sv.set("Dumpimg memory...")
-    error_lbl.update()
     dump = ram2hex(RAM)
     dgr_serial = comport(2400, digirule, port = DIGIRULE_USB)
     if dgr_serial:
         DIGIRULE_USB = dgr_serial.port
+        error_sv.set("Dumpimg memory on port " + DIGIRULE_USB)
+        error_lbl.update()
         # print (DIGIRULE_USB)
         try:
             dgr_serial.open()
