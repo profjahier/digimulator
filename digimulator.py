@@ -683,10 +683,12 @@ def show_ram():
     global view_ram
     view_ram = not view_ram
     if view_ram:
-        btn_dbg.configure(relief=tk.SUNKEN, text='Hide RAM')
+        btn_dbg.configure(text='Hide RAM')
+        btn_dbg.state(['pressed'])
         display_ram()
     else:
-        btn_dbg.configure(relief=tk.RAISED, text='Show RAM')
+        btn_dbg.configure(text='Show RAM')
+        btn_dbg.state(['!pressed'])
         text_RAM.config(state=tk.NORMAL)
         text_RAM.delete("1.0",tk.END)
         sv_acc.set("")
@@ -882,7 +884,8 @@ can_run = tk.Canvas(frame_state, width=30, height=10, bg='black')
 can_run.pack(side=tk.TOP)
 can_stop = tk.Canvas(frame_state, width=30, height=10, bg='red')
 can_stop.pack(side=tk.BOTTOM)
-btn_dbg = tk.Button(frame_run, text='Hide RAM', command=show_ram, relief=tk.SUNKEN)
+btn_dbg = ttk.Button(frame_run, text='Hide RAM', command=show_ram)
+btn_dbg.state(['pressed'])
 btn_dbg.pack(side=tk.LEFT)
 frame_goto = ttk.Frame(frame_dr)
 frame_goto.pack()
