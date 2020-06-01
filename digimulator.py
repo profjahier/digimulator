@@ -15,6 +15,8 @@ from indentator import indent
 from line_numbers import LineNumberWidget
 from dgrserial import ram2hex, comport
 from tkinter import messagebox
+import sys
+import serial
 
 with open('config.txt', 'r', encoding='utf-8') as f:
     config = f.readlines()
@@ -22,6 +24,7 @@ COLOR_DATA_LED = config[0].split(',')[0]
 COLOR_ADDRESS_LED = config[1].split(',')[0]
 COLOR_OFF = config[2].split(',')[0]
 BGCOLOR = config[3].split(',')[0]
+LINEWIDTH = 70
 
 # Global variables definitions
 RAM = [0]*256 # empty 256 byte RAM
@@ -443,8 +446,10 @@ def execute(mnemo):
         sv_inst.set("COMOUT")
         if accu == 10:
             print()
+            error_sv.set("")
         else:
             print(chr(accu), end="")
+            error_sv.set((error_sv.get()+chr(accu))[-LINEWIDTH-15:])
     elif mnemo == 193:
         sv_inst.set("COMIN")
         accu = int(input("entrer donnee"))
@@ -475,6 +480,7 @@ def run():
     """ toggles run_mode, and starts running the program from the address defined by the address LEDs """
     global run_mode, PC, idle
     print_dbg(f'btn_run was pressed') 
+    error_sv.set("")
     if run_mode and not(save_mode or load_mode):
         can_run['bg'] = 'black'
         can_stop['bg'] = 'red'
@@ -797,18 +803,26 @@ def quit():
 def export():
     global DIGIRULE_USB
 
+    error_sv.set("Dumpimg memory...")
+    error_lbl.update()
     dump = ram2hex(RAM)
     dgr_serial = comport(2400, digirule, port = DIGIRULE_USB)
     if dgr_serial:
         DIGIRULE_USB = dgr_serial.port
         # print (DIGIRULE_USB)
-        dgr_serial.open()
-        for line in dump.splitlines():
-            dgr_serial.write(line.encode("utf-8"))
-        dgr_serial.close()
-        answer = messagebox.askyesno("Question","Is the transfert OK ??")
-        if not answer:
-            DIGIRULE_USB = ""
+        try:
+            dgr_serial.open()
+        except serial.serialutil.SerialException as ex:
+            error_sv.set(ex)
+        else:
+            for line in dump.splitlines():
+                dgr_serial.write(line.encode("utf-8"))
+            dgr_serial.close()
+            error_sv.set("Memory sent")
+            answer = messagebox.askyesno("Question","Is the transfert OK ??")
+            if not answer:
+                DIGIRULE_USB = ""
+            error_sv.set("")
     else:
         # print("No USB UART interface detected")
         DIGIRULE_USB = ""
@@ -902,7 +916,7 @@ frame_txt.grid_propagate(True)
 frame_txt.grid_rowconfigure(0, weight=1)
 frame_txt.grid_columnconfigure(0, weight=1)
 # Editor
-edit_text = tk.Text(frame_txt, width=70, height=25, background='black', fg='green', insertbackground='yellow', wrap=tk.NONE)
+edit_text = tk.Text(frame_txt, width=LINEWIDTH, height=25, background='black', fg='green', insertbackground='yellow', wrap=tk.NONE)
 edit_text.grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
 # Line numbers
 linenumbers = LineNumberWidget(edit_text, frame_txt, width=3, state="disable")
@@ -944,7 +958,8 @@ def update_line_numbers():
 edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords")
 assemble_btn = ttk.Button(frame_edit, text="Assemble", command=assemble)
 assemble_btn.pack()
-error_lbl = ttk.Label(frame_edit, textvariable=error_sv)
+error_lbl = ttk.Label(frame_edit, textvariable=error_sv, anchor = tk.W, borderwidth = 1, width=LINEWIDTH+10, padding=5,
+                relief=tk.SUNKEN, background = "black", foreground = "green")
 error_lbl.pack()
 
 
