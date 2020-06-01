@@ -554,7 +554,7 @@ def load():
         print_dbg('action load')
         if not (run_mode or save_mode):
             load_mode = True
-            btn_load['relief'] = tk.SUNKEN
+            #btn_load['relief'] = tk.SUNKEN
     
 def save():
     """ sets the save_mode to save RAM to a program on the flash memory """
@@ -969,7 +969,7 @@ def update_line_numbers():
 edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords")
 assemble_btn = ttk.Button(frame_edit, text="Assemble", command=assemble)
 assemble_btn.pack()
-error_lbl = ttk.Label(frame_edit, textvariable=error_sv, anchor = tk.W, borderwidth = 1, width=LINEWIDTH, padding=5,
+error_lbl = ttk.Label(frame_edit, textvariable=error_sv, anchor = tk.W, borderwidth = 1, width=-50, wraplength=600, padding=5,
                 relief=tk.SUNKEN, background = "black", foreground = "green")
 error_lbl.pack()
 
