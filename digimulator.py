@@ -982,7 +982,7 @@ def update_line_numbers():
         on_scrollbar('moveto', linenumbers.prev_posi)  # Scroll back to previous position
 
 
-edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords")
+edit_text.insert("1.0", "// See examples from https://github.com/profjahier/digimulator/\n// to learn more about the syntax and keywords")
 assemble_btn = ttk.Button(frame_edit, text="Assemble", command=assemble)
 assemble_btn.pack()
 error_lbl = ttk.Label(frame_edit, textvariable=error_sv, anchor = tk.W, borderwidth = 1, width=-50, wraplength=600, padding=5,
