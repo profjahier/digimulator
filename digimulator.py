@@ -969,7 +969,7 @@ def update_line_numbers():
 edit_text.insert("1.0", "// See examples from http://digirulenotes.com/\n// to learn more about the syntax and keywords")
 assemble_btn = ttk.Button(frame_edit, text="Assemble", command=assemble)
 assemble_btn.pack()
-error_lbl = ttk.Label(frame_edit, textvariable=error_sv, anchor = tk.W, borderwidth = 1, width=LINEWIDTH+10, padding=5,
+error_lbl = ttk.Label(frame_edit, textvariable=error_sv, anchor = tk.W, borderwidth = 1, width=LINEWIDTH, padding=5,
                 relief=tk.SUNKEN, background = "black", foreground = "green")
 error_lbl.pack()
 
