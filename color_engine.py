@@ -79,7 +79,7 @@ def get_int_indexes(text):
     :return: all the found integers indexes
     :rtype: list(tuple)
     """
-    return [(m.start(), m.end()-m.start()) for m in re.finditer(r'(?i)(\b(0b|0x)?[0-9]+\b)', text.split("//")[0])]
+    return [(m.start(), m.end()-m.start()) for m in re.finditer(r'(?i)(\b(0b[0-1]+|0x[0-9a-f]+|[0-9]+)\b)', text.split("//")[0])]
 
 
 # --- LABELS methods ---

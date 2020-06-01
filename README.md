@@ -3,6 +3,19 @@ Simulator of **digirule 2** (https://bradsprojects.com/digirule2/) written in Py
 
 ![Screen capture](screen.png)
 
+# Installation
+
+You must have Python 3.6 or above with tkInter - usually installed with your python distribution.
+On Ubuntu, if you don't have tkintern install it via
+```
+sudo apt install python3-tk
+```
+
+besides that, you will need ton install *serial* and *serial-tool* with
+```
+sudo pip3 install serial serial-tool
+```
+
 # Instruction set
 
 Digimulator offers the *Digirule 2B* enhanced instruction set. See https://github.com/wawachief/DGR2B for more informations.
