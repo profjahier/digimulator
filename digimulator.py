@@ -72,7 +72,10 @@ def PC_next():
     switch_led(RAM[REG_ADATA], frame='data')
     if idle:
         idle = False
-        can_address.after(pause, PC_next1) # pause in ms
+        if pause == 1:
+            can_address.after_idle(PC_next1) # pause in ms
+        else:
+            can_address.after(pause, PC_next1) # pause in ms
 def PC_next1():
     """ Pause is over !!"""
     global idle
@@ -121,44 +124,45 @@ def execute(mnemo):
         return s
     	
     global run_mode, PC, pause, accu, SP, OSP
+    decoded_inst = ""
     if mnemo == 0:
-        sv_inst.set("HALT")
+        decoded_inst=("HALT")
         halt()
     elif mnemo == 1:
-        sv_inst.set("NOP")
+        decoded_inst=("NOP")
     elif mnemo == 2:
-        sv_inst.set("SPEED " + str(RAM[PC+1]) )
+        decoded_inst=("SPEED " + str(RAM[PC+1]) )
         PC_next()
         pause = 1 + 2 * RAM[PC] 
         speed_rule.set(pause)
     elif mnemo == 3:
-        sv_inst.set("COPYLR " + str(RAM[PC+1]) + " " + str(RAM[PC+2]) )
+        decoded_inst=("COPYLR " + str(RAM[PC+1]) + " " + str(RAM[PC+2]) )
         PC_next()
         value = RAM[PC]
         PC_next()
         RAM[RAM[PC]] = value
     elif mnemo == 4:
-        sv_inst.set("COPYLA " + str(RAM[PC+1]) )
+        decoded_inst=("COPYLA " + str(RAM[PC+1]) )
         PC_next()
         accu = RAM[PC]
     elif mnemo == 5:
-        sv_inst.set("COPYAR " + str(RAM[PC+1]) )
+        decoded_inst=("COPYAR " + str(RAM[PC+1]) )
         PC_next()
         RAM[RAM[PC]] = accu
     elif mnemo == 6:
-        sv_inst.set("COPYRA " + str(RAM[PC+1]) )
+        decoded_inst=("COPYRA " + str(RAM[PC+1]) )
         PC_next()
         accu = RAM[RAM[PC]]
         status_Z(accu)
     elif mnemo == 7:
-        sv_inst.set("COPYRR " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        decoded_inst=("COPYRR " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         PC_next()
         address = RAM[PC]
         PC_next()
         RAM[RAM[PC]] = RAM[address]
         status_Z(RAM[address])
     elif mnemo == 8:
-        sv_inst.set("ADDLA " + str(RAM[PC+1]) )
+        decoded_inst=("ADDLA " + str(RAM[PC+1]) )
         PC_next()
         value = RAM[PC]        
         if status_C(accu + value):
@@ -167,7 +171,7 @@ def execute(mnemo):
             accu += value
         status_Z(accu)
     elif mnemo == 9:
-        sv_inst.set("ADDRA " + str(RAM[PC+1]) )
+        decoded_inst=("ADDRA " + str(RAM[PC+1]) )
         PC_next()
         value = RAM[RAM[PC]]
         if status_C(accu + value):
@@ -176,7 +180,7 @@ def execute(mnemo):
             accu += value
         status_Z(accu)
     elif mnemo == 10:
-        sv_inst.set("SUBLA " + str(RAM[PC+1]) )
+        decoded_inst=("SUBLA " + str(RAM[PC+1]) )
         PC_next()
         value = RAM[PC]
         if status_C(accu - value, way='down'):
@@ -185,7 +189,7 @@ def execute(mnemo):
             accu -= value
         status_Z(accu)
     elif mnemo == 11:
-        sv_inst.set("SUBRA " + str(RAM[PC+1]) )
+        decoded_inst=("SUBRA " + str(RAM[PC+1]) )
         PC_next()
         value = RAM[RAM[PC]]
         if status_C(accu - value, way='down'):
@@ -194,63 +198,63 @@ def execute(mnemo):
             accu -= value
         status_Z(accu)
     elif mnemo == 12:
-        sv_inst.set("ANDLA " + str(RAM[PC+1]) )
+        decoded_inst=("ANDLA " + str(RAM[PC+1]) )
         PC_next()
         accu &= RAM[PC]
         status_Z(accu)
     elif mnemo == 13:
-        sv_inst.set("ANDRA " + str(RAM[PC+1]) )
+        decoded_inst=("ANDRA " + str(RAM[PC+1]) )
         PC_next()
         accu &= RAM[RAM[PC]]
         status_Z(accu)
     elif mnemo == 14:
-        sv_inst.set("ORLA " + str(RAM[PC+1]) )
+        decoded_inst=("ORLA " + str(RAM[PC+1]) )
         PC_next()
         accu |= RAM[PC]
         status_Z(accu)
     elif mnemo == 15:
-        sv_inst.set("ORRA " + str(RAM[PC+1]) )
+        decoded_inst=("ORRA " + str(RAM[PC+1]) )
         PC_next()
         accu |= RAM[RAM[PC]]
         status_Z(accu)
     elif mnemo == 16:
-        sv_inst.set("XORLA " + str(RAM[PC+1]) )
+        decoded_inst=("XORLA " + str(RAM[PC+1]) )
         PC_next()
         accu ^= RAM[PC]
         status_Z(accu)
     elif mnemo == 17:
-        sv_inst.set("XORRA " + str(RAM[PC+1]) )
+        decoded_inst=("XORRA " + str(RAM[PC+1]) )
         PC_next()
         accu ^= RAM[RAM[PC]]
         status_Z(accu)
     elif mnemo == 18:
-        sv_inst.set("DECR " + str(RAM[PC+1]) )
+        decoded_inst=("DECR " + str(RAM[PC+1]) )
         PC_next()
         address = RAM[PC]
         RAM[address]  = (-1 + RAM[address]) % 256
         status_Z(RAM[address])
     elif mnemo == 19:
-        sv_inst.set("INCR " + str(RAM[PC+1]) )
+        decoded_inst=("INCR " + str(RAM[PC+1]) )
         PC_next()
         address = RAM[PC]
         RAM[address]  = (1 + RAM[address]) % 256
         status_Z(RAM[address])
     elif mnemo == 20:
-        sv_inst.set("DECRJZ " + str(RAM[PC+1]) )
+        decoded_inst=("DECRJZ " + str(RAM[PC+1]) )
         PC_next()
         address = RAM[PC]
         RAM[address] = (-1 + RAM[address]) % 256
         if status_Z(RAM[address]):
             PC += 2
     elif mnemo == 21:
-        sv_inst.set("INCRJZ " + str(RAM[PC+1]) )
+        decoded_inst=("INCRJZ " + str(RAM[PC+1]) )
         PC_next()
         address = RAM[PC]
         RAM[address] = (1 + RAM[address]) % 256
         if status_Z(RAM[address]):
             PC += 2
     elif mnemo == 22:
-        sv_inst.set("SHIFTRL " + str(RAM[PC+1]) )
+        decoded_inst=("SHIFTRL " + str(RAM[PC+1]) )
         PC_next()
         address = RAM[PC]
         RAM[address] <<= 1 # shifts whitout taking care of the previous Carry bit
@@ -259,7 +263,7 @@ def execute(mnemo):
         if status_C(RAM[address]):
             RAM[address] -= 256
     elif mnemo == 23:
-        sv_inst.set("SHIFTRR " + str(RAM[PC+1]) )
+        decoded_inst=("SHIFTRR " + str(RAM[PC+1]) )
         PC_next()
         address = RAM[PC]
         carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
@@ -270,101 +274,101 @@ def execute(mnemo):
         RAM[address] >>= 1 # shifts whitout taking care of the previous Carry bit
         RAM[address] += 128 * carry # sets the MSB equals to the previous Carry bit
     elif mnemo == 24:
-        sv_inst.set("CBR " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
+        decoded_inst=("CBR " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
         PC_next()
         bit = RAM[PC]
         PC_next()
         RAM[RAM[PC]] &= (255-2**bit) # sets the specified bit to 0
     elif mnemo == 25:
-        sv_inst.set("SBR " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
+        decoded_inst=("SBR " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
         PC_next()
         bit = RAM[PC]
         PC_next()
         RAM[RAM[PC]] |= 2**bit # sets the specified bit to 1
     elif mnemo == 26 or mnemo == 27:
         if mnemo == 26:
-            sv_inst.set("BCRSC " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+            decoded_inst=("BCRSC " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         else:
-            sv_inst.set("BCRSS " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+            decoded_inst=("BCRSS " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         PC_next()
         bit = RAM[PC]
         PC_next()
         if (mnemo == 26 and not(RAM[RAM[PC]] & 2**bit)) or (mnemo == 27 and (RAM[RAM[PC]] & 2**bit)):
             PC += 2
     elif mnemo == 28:
-        sv_inst.set("JUMP " + str(RAM[PC+1]) )
+        decoded_inst=("JUMP " + str(RAM[PC+1]) )
         PC_next()
         PC = RAM[PC] - 1 # (-1) because of the "PC+1" after this actual execution
     elif mnemo == 29:
-        sv_inst.set("CALL " + str(RAM[PC+1]) )
+        decoded_inst=("CALL " + str(RAM[PC+1]) )
         PC_next()
         stack_in(PC)
         PC = RAM[PC] - 1 # (-1) because of the "PC+1 command" after this actual execution
     elif mnemo == 30:
-        sv_inst.set("RETLA " + str(RAM[PC+1]) )
+        decoded_inst=("RETLA " + str(RAM[PC+1]) )
         PC_next()
         accu = RAM[PC]
         PC = stack_out() # to go back to the CALL
     elif mnemo == 31:
-        sv_inst.set("RETURN" )
+        decoded_inst=("RETURN" )
         PC = stack_out() # to go back to the CALL
     elif mnemo == 32:
-        sv_inst.set("ADDRPC " + str(RAM[PC+1]) )
+        decoded_inst=("ADDRPC " + str(RAM[PC+1]) )
         PC_next()
         PC = (PC+RAM[RAM[PC]])%256
     elif mnemo == 33:
-        sv_inst.set("INITSP" )
+        decoded_inst=("INITSP" )
         SP = 0 # stack pointer
         OSP = 0
     elif mnemo == 34:
-        sv_inst.set("RANDA" )
+        decoded_inst=("RANDA" )
         accu = randint(0, 255)
     # Nouvelles instructions DGR2B
     elif mnemo == 35:
-        sv_inst.set("COPYLI " + str(RAM[PC+1]) + " " + str(RAM[PC+2]) )
+        decoded_inst=("COPYLI " + str(RAM[PC+1]) + " " + str(RAM[PC+2]) )
         PC_next()
         value = RAM[PC]
         PC_next()
         RAM[RAM[RAM[PC]]] = value
     elif mnemo == 36:
-        sv_inst.set("COPYAI " + str(RAM[PC+1]) )
+        decoded_inst=("COPYAI " + str(RAM[PC+1]) )
         PC_next()
         RAM[RAM[RAM[PC]]] = accu
     elif mnemo == 37:
-        sv_inst.set("COPYIA " + str(RAM[PC+1]) )
+        decoded_inst=("COPYIA " + str(RAM[PC+1]) )
         PC_next()
         accu = RAM[RAM[RAM[PC]]]
         status_Z(accu)
     elif mnemo == 38:
-        sv_inst.set("COPYRI " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        decoded_inst=("COPYRI " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         PC_next()
         address = RAM[PC]
         PC_next()
         RAM[RAM[RAM[PC]]] = RAM[address]
         status_Z(RAM[address])
     elif mnemo == 39:
-        sv_inst.set("COPYIR " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        decoded_inst=("COPYIR " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         PC_next()
         address = RAM[PC]
         PC_next()
         RAM[RAM[PC]] = RAM[RAM[address]]
         status_Z(RAM[RAM[address]])
     elif mnemo == 40:
-        sv_inst.set("COPYII " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        decoded_inst=("COPYII " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
         PC_next()
         address = RAM[PC]
         PC_next()
         RAM[RAM[RAM[PC]]] = RAM[RAM[address]]
         status_Z(RAM[RAM[address]])
     elif mnemo == 41:
-        sv_inst.set("SHIFTAL")
+        decoded_inst=("SHIFTAL")
         accu <<= 1 # shifts whitout taking care of the previous Carry bit
         carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
         accu += carry # sets the LSB equals to the previous Carry bit
         if status_C(accu):
             accu -= 256
     elif mnemo == 42:
-        sv_inst.set("SHIFTAR")
+        decoded_inst=("SHIFTAR")
         carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
         if accu % 2 == 1: # if odd value => raises a new Carry
             RAM[REG_STATUS] |= 2 # sets Carry bit to 1
@@ -373,22 +377,22 @@ def execute(mnemo):
         accu >>= 1 # shifts whitout taking care of the previous Carry bit
         accu += 128 * carry # sets the MSB equals to the previous Carry bit
     elif mnemo == 43:
-        sv_inst.set("JUMPI " + str(RAM[PC+1]) )
+        decoded_inst=("JUMPI " + str(RAM[PC+1]) )
         PC_next()
         PC = RAM[RAM[PC]] - 1 # (-1) because of the "PC+1" after this actual execution
     elif mnemo == 44:
-        sv_inst.set("CALLI " + str(RAM[PC+1]) )
+        decoded_inst=("CALLI " + str(RAM[PC+1]) )
         PC_next()
         stack_in(PC)
         PC = RAM[RAM[PC]] - 1 # (-1) because of the "PC+1 command" after this actual execution
     elif mnemo == 45:
-        sv_inst.set("PUSH")
+        decoded_inst=("PUSH")
         if OSP >= OPSTACK_DEPTH:
         	halt() # stack overflow
         opstack[OSP] = accu
         OSP += 1 
     elif mnemo == 46:
-        sv_inst.set("POP")
+        decoded_inst=("POP")
         if OSP == 0:
             halt() # stack underflow
         else:
@@ -396,7 +400,7 @@ def execute(mnemo):
             accu = opstack[OSP]
             status_Z(accu)
     elif mnemo == 47:
-        sv_inst.set("PUSHR" + str(RAM[PC+1]))
+        decoded_inst=("PUSHR" + str(RAM[PC+1]))
         if OSP >= OPSTACK_DEPTH:
         	halt() # stack overflow
         PC_next()
@@ -404,7 +408,7 @@ def execute(mnemo):
         opstack[OSP] = RAM[address]
         OSP += 1 
     elif mnemo == 48:
-        sv_inst.set("POPR" + str(RAM[PC+1]))
+        decoded_inst=("POPR" + str(RAM[PC+1]))
         PC_next()
         address = RAM[PC]
         if OSP == 0:
@@ -414,7 +418,7 @@ def execute(mnemo):
             RAM[address] = opstack[OSP]
             status_Z(RAM[address])
     elif mnemo == 49:
-        sv_inst.set("PUSHI" + str(RAM[PC+1]))
+        decoded_inst=("PUSHI" + str(RAM[PC+1]))
         if OSP >= OPSTACK_DEPTH:
         	halt() # stack overflow
         PC_next()
@@ -422,7 +426,7 @@ def execute(mnemo):
         opstack[OSP] = RAM[RAM[address]]
         OSP += 1 
     elif mnemo == 50:
-        sv_inst.set("POPI" + str(RAM[PC+1]))
+        decoded_inst=("POPI" + str(RAM[PC+1]))
         PC_next()
         address = RAM[PC]
         if OSP == 0:
@@ -432,18 +436,18 @@ def execute(mnemo):
             RAM[RAM[address]] = opstack[OSP]
             status_Z(RAM[RAM[address]])
     elif mnemo == 51:
-        sv_inst.set("HEAD")
+        decoded_inst=("HEAD")
         if OSP == 0:
             halt() # stack underflow
         else:
             accu = opstack[OSP-1]
             status_Z(accu)
     elif mnemo == 52:
-        sv_inst.set("DEPTH")
+        decoded_inst=("DEPTH")
         accu = OSP
         status_Z(accu)
     elif mnemo == 192:
-        sv_inst.set("COMOUT")
+        decoded_inst=("COMOUT")
         if accu == 10:
             print()
             error_sv.set("")
@@ -451,10 +455,12 @@ def execute(mnemo):
             print(chr(accu), end="")
             error_sv.set((error_sv.get()+chr(accu))[-LINEWIDTH-15:])
     elif mnemo == 193:
-        sv_inst.set("COMIN")
+        decoded_inst=("COMIN")
         accu = int(input("entrer donnee"))
     else: # digirule program stops if unknown mnemonic
-        execute(0) 
+        execute(0)
+    if view_ram:
+        sv_inst.set(decoded_inst)
     
 def program_run():
     """ runs the program ! """
@@ -649,7 +655,7 @@ def btn_i_released(i):
 def reset():
     """ sets the environment when digirule starts """
     global SP,PC, run_mode, flash_memory, pause, accu, load_mode, save_mode, idle
-    pause = 1 # pause (in s) between 2 executions on run_mode
+    pause = 1 # pause (in ms) between 2 executions on run_mode
     PC = 0 # Program Counter => address of RAM
     SP = 0 # Stack Pointer
     OSP = 0
@@ -682,6 +688,11 @@ def show_ram():
         btn_dbg.configure(relief=tk.RAISED, text='Show RAM')
         text_RAM.config(state=tk.NORMAL)
         text_RAM.delete("1.0",tk.END)
+        sv_acc.set("")
+        sv_pc.set("")
+        sv_sp.set("")
+        sv_status.set("")
+        sv_inst.set("")
 
 def display_ram():
     """ 256 byte RAM displayed on the right side of the digirule.
@@ -710,14 +721,14 @@ def display_ram():
         text_RAM.tag_add("pc", "debut", "fin")
         text_RAM.config(state=tk.DISABLED)
 
-    sv_acc.set(f"AC = {d2b(accu)} (dec : {str(accu)})")
-    hexmode_str = "hex" if iv_hex.get() == 1 else "dec"
-    sv_pc.set(f"PC  =  {d2b(PC)} ({hexmode_str} : {d2h(PC, iv_hex.get())})")
-    stack_str = "stack : "
-    for i in range(SP):
-        stack_str += d2h(stack[i], iv_hex.get()) + " "
-    sv_sp.set(stack_str)
-    sv_status.set(f"ST  = {d2b(RAM[REG_STATUS])}")
+        sv_acc.set(f"AC = {d2b(accu)} (dec : {str(accu)})")
+        hexmode_str = "hex" if iv_hex.get() == 1 else "dec"
+        sv_pc.set(f"PC  =  {d2b(PC)} ({hexmode_str} : {d2h(PC, iv_hex.get())})")
+        stack_str = "stack : "
+        for i in range(SP):
+            stack_str += d2h(stack[i], iv_hex.get()) + " "
+        sv_sp.set(stack_str)
+        sv_status.set(f"ST  = {d2b(RAM[REG_STATUS])}")
     
 def dbg_setpc(sender):
     """ goes to a specifc address (sets new PC) directly by double-clicking """
@@ -1011,17 +1022,18 @@ sv_inst = tk.StringVar()
 iv_hex = tk.IntVar()
 iv_hex.set(1)
 
-label_sp = ttk.Label(frame_reg, textvariable=sv_sp)
+label_sp = ttk.Label(frame_reg, textvariable=sv_sp, anchor = tk.W,width=25)
 label_sp.pack()
-label_pc = ttk.Label(frame_reg, textvariable=sv_pc)
+label_pc = ttk.Label(frame_reg, textvariable=sv_pc, anchor = tk.W,width=25)
 label_pc.pack()
-label_inst = ttk.Label(frame_reg, textvariable=sv_inst, background="yellow")
+label_inst = ttk.Label(frame_reg, textvariable=sv_inst, background="black", 
+            foreground="green", border=1, relief = tk.SUNKEN, anchor = tk.W,width=15)
 label_inst.pack()
 
-label_acc = ttk.Label(frame_reg, textvariable=sv_acc)
+label_acc = ttk.Label(frame_reg, textvariable=sv_acc, anchor = tk.W,width=25)
 label_acc.pack()
 
-label_status = ttk.Label(frame_reg, textvariable=sv_status)
+label_status = ttk.Label(frame_reg, textvariable=sv_status, anchor = tk.W,width=25)
 label_status.pack()
 
 text_RAM = tk.Text(frame_dbg, width=32, height=32, bg='black', fg='green')
