@@ -563,7 +563,7 @@ def save():
         print_dbg('action save')
         if not (run_mode or load_mode):
             save_mode = True
-            btn_save['relief'] = tk.SUNKEN
+            #btn_save['relief'] = tk.SUNKEN
     
 def switch_led(n, frame='data', mode='int'):
     """ displays a number 'n' on the LEDs.
