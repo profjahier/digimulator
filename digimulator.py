@@ -529,7 +529,7 @@ def load():
         print_dbg('action load')
         if not (run_mode or save_mode):
             load_mode = True
-            # btn_load['relief'] = tk.SUNKEN
+            btn_load.state(['pressed'])
     
 def save():
     """ sets the save_mode to save RAM to a program on the flash memory """
@@ -538,7 +538,7 @@ def save():
         print_dbg('action save')
         if not (run_mode or load_mode):
             save_mode = True
-            # btn_save['relief'] = tk.SUNKEN
+            btn_save.state(['pressed'])
     
 def switch_led(n, frame='data', mode='int'):
     """ displays a number 'n' on the LEDs.
@@ -589,7 +589,7 @@ def btn_i(i):
         PC = 0
         RAM[REG_BUTTON] = 0
         load_mode = not load_mode
-        # btn_load['relief'] = tk.RAISED
+        btn_load.state(['!pressed'])
         switch_led(PC, frame='address')
         switch_led(RAM[PC], frame='data')
         
@@ -603,7 +603,7 @@ def btn_i(i):
             for j in range(start + 256, len(flash_memory)):
                 f.write(flash_memory[j])
         save_mode = not save_mode
-        # btn_save['relief'] = tk.RAISED
+        btn_save.state(['!pressed'])
     
     elif run_mode: 
         pass
