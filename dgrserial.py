@@ -49,7 +49,7 @@ def ram2hex(ram):
         nbcol = 12 if line == 15 else 16
         # Line header : nbcol (2 bytes) + address (2 bytes)
         newline = ':' + tohex(nbcol) + '00' + tohex(line * 16) + '00'
-        control = nbcol + line * nbcol
+        control = nbcol + line * 16
         for col in range(nbcol):
             r = ram[line*16+col]
             control += r
