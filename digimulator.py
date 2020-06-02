@@ -908,6 +908,7 @@ def importram():
                     for i,r in enumerate(newram):
                         RAM[i] = r
                     display_ram()
+                    text_RAM.update()
                     answer = messagebox.askyesno("Question","Is the transfert OK ??")
                     if not answer:
                         DIGIRULE_USB = ""
