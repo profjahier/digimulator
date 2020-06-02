@@ -13,7 +13,7 @@ from assemble import Assemble
 import color_engine as engine
 from indentator import indent
 from line_numbers import LineNumberWidget
-from dgrserial import ram2hex, comport
+from dgrserial import ram2hex, comport, hex2ram
 from tkinter import messagebox, simpledialog
 import sys
 import serial
@@ -43,6 +43,8 @@ REG_ADATA = 255
 debug = False
 run_mode = False
 view_ram = True
+import_flag = False
+abort_flag = False
 PC = 0
 DIGIRULE_USB = ""
 
@@ -853,6 +855,67 @@ def export():
         # print("No USB UART interface detected")
         DIGIRULE_USB = ""
 
+def importram():
+    global DIGIRULE_USB, import_flag, abort_flag
+
+    if import_flag:
+        abort_flag = True
+        btn_import.state(['!pressed'])
+        return
+
+    import_flag = True
+    btn_import.state(['pressed'])
+
+    dgr_serial = comport(2400, digirule, port = DIGIRULE_USB)
+    if dgr_serial:
+        DIGIRULE_USB = dgr_serial.port
+        error_sv.set("Receiving RAM from Digirule on port " + DIGIRULE_USB)
+        error_lbl.update()
+        try:
+            dgr_serial.open()
+        except serial.serialutil.SerialException as ex:
+            error_sv.set(ex)
+        else:
+            # Waiting for the digirule to transmit
+            # with ability to abort
+            while (dgr_serial.in_waiting == 0) and not abort_flag:
+                btn_import.update()
+            import_flag = False
+            if abort_flag:
+                abort_flag = False
+                error_sv.set("Abort transfert")
+                dgr_serial.close()
+                return
+            else:
+                # Digirule is transmitting
+                error_sv.set("Digirule is transmitting")
+                error_lbl.update()
+                listdump = dgr_serial.readlines()
+                dgr_serial.close()
+                btn_import.state(['!pressed'])
+                hexdump = ""
+                for line in listdump:
+                    hexdump += line.decode('utf-8')
+                # print (hexdump)
+                try:
+                    newram = hex2ram(hexdump)
+                except ValueError:
+                    error_sv.set("Checksum error")
+                else:
+                    # Ram is received and no checksum error
+                    # writing newram in RAM
+                    error_sv.set("Memory received")
+                    for i,r in enumerate(newram):
+                        RAM[i] = r
+                    display_ram()
+                    answer = messagebox.askyesno("Question","Is the transfert OK ??")
+                    if not answer:
+                        DIGIRULE_USB = ""
+                    error_sv.set("")
+    else:
+        # print("No USB UART interface detected")
+        DIGIRULE_USB = ""
+    import_flag = False
 
 #
 # Interface
@@ -905,6 +968,8 @@ ttk.Button(frame_goto, text='Next', command=next_).pack(side=tk.LEFT)
 ttk.Button(frame_goto, text='Store', command=store).pack(side=tk.LEFT)
 frame_file = ttk.Frame(frame_dr)
 frame_file.pack()
+btn_import = ttk.Button(frame_file, text='from Digirule', command=importram)
+btn_import.pack(side=tk.LEFT)
 btn_load = ttk.Button(frame_file, text='Load', command=load)
 btn_load.pack(side=tk.LEFT)
 btn_save = ttk.Button(frame_file, text='Save', command=save)

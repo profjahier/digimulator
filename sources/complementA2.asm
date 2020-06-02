@@ -1,4 +1,4 @@
-/ Complement a 2
+// Complement a 2
 // Olivier Lecluse
 // Utiliser les boutons pour choisir un nombre			
 // Le complément a2 s’affiche en temps réel
@@ -10,7 +10,7 @@
 %define	zeroFlag	 0
 
 initsp
-speed 1
+speed 0
 sbr 2 statusReg // Autorise l’écriture sur les LED d’adresses
 
 :debut
@@ -33,7 +33,8 @@ sbr 2 statusReg // Autorise l’écriture sur les LED d’adresses
 :wait
     copylr 9 loopTouche
 :waitloop
-    copylr 7 loopTouche1
+    // copylr 7 loopTouche1  // use this for digimulator
+    copylr 255 loopTouche1   // use this for digirule
     :waitloop1
         decrjz loopTouche1
         jump waitloop1
