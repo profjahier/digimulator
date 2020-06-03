@@ -5,79 +5,14 @@
 # Licence GNU General Public License v3.0
 
 class Assemble:
-    def __init__(self, text):
+    def __init__(self, text, inst_dic):
         self.lines = self.split_lines(text + "\n")
         self.nodes = []
 
-        self.operators_dic = {
-            "halt": {"code": 0, "operandCount": 0},
-            "nop": {"code": 1, "operandCount": 0},
-            "speed": {"code": 2, "operandCount": 1},
-            "copylr": {"code": 3, "operandCount": 2},
-            "copyla": {"code": 4, "operandCount": 1},
-            "copyar": {"code": 5, "operandCount": 1},
-            "copyra": {"code": 6, "operandCount": 1},
-            "copyrr": {"code": 7, "operandCount": 2},
-            "addla": {"code": 8, "operandCount": 1},
-            "addra": {"code": 9, "operandCount": 1},
-            "subla": {"code": 10, "operandCount": 1},
-            "subra": {"code": 11, "operandCount": 1},
-            "andla": {"code": 12, "operandCount": 1},
-            "andra": {"code": 13, "operandCount": 1},
-            "orla": {"code": 14, "operandCount": 1},
-            "orra": {"code": 15, "operandCount": 1},
-            "xorla": {"code": 16, "operandCount": 1},
-            "xorra": {"code": 17, "operandCount": 1},
-            "decr": {"code": 18, "operandCount": 1},
-            "incr": {"code": 19, "operandCount": 1},
-            "decrjz": {"code": 20, "operandCount": 1},
-            "incrjz": {"code": 21, "operandCount": 1},
-            "shiftrl": {"code": 22, "operandCount": 1},
-            "shiftrr": {"code": 23, "operandCount": 1},
-            "cbr": {"code": 24, "operandCount": 2},
-            "sbr": {"code": 25, "operandCount": 2},
-            "bcrsc": {"code": 26, "operandCount": 2},
-            "bcrss": {"code": 27, "operandCount": 2},
-            "jump": {"code": 28, "operandCount": 1},
-            "call": {"code": 29, "operandCount": 1},
-            "retla": {"code": 30, "operandCount": 1},
-            "return": {"code": 31, "operandCount": 0},
-            "addrpc": {"code": 32, "operandCount": 1},
-            "initsp": {"code": 33, "operandCount": 0},
-            "randa": {"code": 34, "operandCount": 0},
-            "copyli": {"code": 35, "operandCount": 2},
-            "copyai": {"code": 36, "operandCount": 1},
-            "copyia": {"code": 37, "operandCount": 1},
-            "copyri": {"code": 38, "operandCount": 2},
-            "copyir": {"code": 39, "operandCount": 2},
-            "copyii": {"code": 40, "operandCount": 2},
-            "shiftar": {"code": 41, "operandCount": 0},
-            "shiftal": {"code": 42, "operandCount": 0},
-            "jumpi": {"code": 43, "operandCount": 1},
-            "calli": {"code": 44, "operandCount": 1},
-            "push": {"code": 45, "operandCount": 0},
-            "pop": {"code": 46, "operandCount": 0},
-            "pushr": {"code": 47, "operandCount": 1},
-            "popr": {"code": 48, "operandCount": 1},
-            "pushi": {"code": 49, "operandCount": 1},
-            "popi": {"code": 50, "operandCount": 1},
-            "head": {"code": 51, "operandCount": 0},
-            "depth": {"code": 52, "operandCount": 0},
-            "comout": {"code": 192, "operandCount": 0},
-            "comin": {"code": 193, "operandCount": 0},
-        }
+        self.operators_dic = inst_dic
         self.labelAddressByName = {}
 
         self.parse()
-
-    def get_keywords(self):
-        """
-        Gets the operators dictionnary
-
-        :return: all operators
-        :rtype: dict
-        """
-        return self.operators_dic
 
     def split_lines(self, text):
         """parses the text and returns a list of lines. A line is a list looking like this :

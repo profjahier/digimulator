@@ -2,8 +2,8 @@
 # digirule 2A simulator 
 # Licence GNU General Public License v3.0
 
-from assemble import Assemble
 import re
+from configparser import ConfigParser
 
 # tags
 KEYWORDS_TAG = "KEYWORD"
@@ -21,25 +21,33 @@ def configure(text_field):
     :param text_field: main text edition field
     """
 
-    text_field.tag_configure(KEYWORDS_TAG, foreground="lightblue")
-    text_field.tag_configure(COMMENTS_TAG, foreground="grey")
-    text_field.tag_configure(INTEGERS_TAG, foreground="lightgreen")
-    text_field.tag_configure(LABELS_TAG, foreground="orange")
-    text_field.tag_configure(DIRECTIVES_TAG, foreground="#d99afd")
+    config = ConfigParser()
+    config.read('config.ini')
+    KT_color = config.get('color_engine', 'KEYWORDS_TAG')
+    CT_color = config.get('color_engine', 'COMMENTS_TAG')
+    IT_color = config.get('color_engine', 'INTEGERS_TAG')
+    LT_color = config.get('color_engine', 'LABELS_TAG')
+    DT_color = config.get('color_engine', 'DIRECTIVES_TAG')
+    text_field.tag_configure(KEYWORDS_TAG, foreground=KT_color)
+    text_field.tag_configure(COMMENTS_TAG, foreground=CT_color)
+    text_field.tag_configure(INTEGERS_TAG, foreground=IT_color)
+    text_field.tag_configure(LABELS_TAG, foreground=LT_color)
+    text_field.tag_configure(DIRECTIVES_TAG, foreground=DT_color)
 
 
 # --- KEYWORDS methods ---
-def get_tag_indexes(text):
+def get_tag_indexes(text, inst_dic):
     """
     Searches and marks all the found keywords in the specified line
 
     :param text: text to search
     :return: all the found keywords indexes
     :rtype: list(tuple)
+    :param inst_dic: instruction set
     """
     keywords_list = []
 
-    for k in Assemble("").get_keywords():
+    for k in inst_dic:
         keywords_list += [(m.start(), len(k)) for m in re.finditer(r'(\b%s\b)' % k, text.lower())]
 
     return keywords_list
@@ -130,7 +138,7 @@ def tag_as(text_field, line_nb, idx_start, count, tag):
     text_field.tag_add(tag, begin, end)
 
 
-def update_current_line(text_field):
+def update_current_line(text_field, inst_dic):
     """
     Updates the currently edited line
 
@@ -143,23 +151,24 @@ def update_current_line(text_field):
     clear_all_tags(text_field, line_begin, line_end)
 
     # Calls the update of all categories on the line
-    update_line_colors(text_field, line_begin.split(".")[0], text_field.get(line_begin, line_end))
+    update_line_colors(text_field, line_begin.split(".")[0], text_field.get(line_begin, line_end), inst_dic)
 
 
-def update_line_colors(text_field, line_nb, line_text):
+def update_line_colors(text_field, line_nb, line_text, inst_dic):
     """
     Performs all the colors updates on the specified line
 
     :param text_field: main text edition field
     :param line_nb: line number
     :param line_text: line text
+    :param inst_dic: instruction set
     """
     # Identify labels
     for i, c in get_label_index(line_text):
         tag_as(text_field, line_nb, i, c, LABELS_TAG)
 
     # Mark all tags
-    for i, c in get_tag_indexes(line_text):
+    for i, c in get_tag_indexes(line_text, inst_dic):
         tag_as(text_field, line_nb, i, c, KEYWORDS_TAG)
 
     # Mark integers
@@ -191,11 +200,12 @@ def clear_all_tags(text_field, start, end):
     text_field.tag_remove(DIRECTIVES_TAG, start, end)
 
 
-def format_all(text_field):
+def format_all(text_field, inst_dic):
     """
     Performs a complete update on all the document's content
 
     :param text_field: main text edition field
+    :param inst_dic: instruction set
     """
     start = "1.0"
     end = "end"
@@ -208,4 +218,4 @@ def format_all(text_field):
     for line in text_field.get(start, end).split("\n"):
         line_nb += 1
 
-        update_line_colors(text_field, line_nb, line)
+        update_line_colors(text_field, line_nb, line, inst_dic)
