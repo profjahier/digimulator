@@ -29,27 +29,35 @@ inst_dic = {
             "bcrss": {"code": 27, "operandCount": 2},
             "jump": {"code": 28, "operandCount": 1},
             "call": {"code": 29, "operandCount": 1},
-            "retla": {"code": 31, "operandCount": 1},  # RETLA and RETURN swapped
             "return": {"code": 30, "operandCount": 0}, # for 2B 2U 
+            "retla": {"code": 31, "operandCount": 1},  # RETLA and RETURN swapped
             "addrpc": {"code": 32, "operandCount": 1},
             "initsp": {"code": 33, "operandCount": 0},
             "randa": {"code": 34, "operandCount": 0},
-            "copyli": {"code": 35, "operandCount": 2},
-            "copyai": {"code": 36, "operandCount": 1},
-            "copyia": {"code": 37, "operandCount": 1},
-            "copyri": {"code": 38, "operandCount": 2},
-            "copyir": {"code": 39, "operandCount": 2},
-            "copyii": {"code": 40, "operandCount": 2},
-            "shiftar": {"code": 41, "operandCount": 0},
-            "shiftal": {"code": 42, "operandCount": 0},
-            "jumpi": {"code": 43, "operandCount": 1},
-            "calli": {"code": 44, "operandCount": 1},
-            "push": {"code": 45, "operandCount": 0},
-            "pop": {"code": 46, "operandCount": 0},
-            "pushr": {"code": 47, "operandCount": 1},
-            "popr": {"code": 48, "operandCount": 1},
-            "pushi": {"code": 49, "operandCount": 1},
-            "popi": {"code": 50, "operandCount": 1},
-            "head": {"code": 51, "operandCount": 0},
-            "depth": {"code": 52, "operandCount": 0},
+            #
+            # Unofficial instructions
+            #
+
+            # Indirect copy
+            "copyli": {"code": 224, "operandCount": 2},
+            "copyai": {"code": 225, "operandCount": 1},
+            "copyia": {"code": 226, "operandCount": 1},
+            "copyri": {"code": 227, "operandCount": 2},
+            "copyir": {"code": 228, "operandCount": 2},
+            "copyii": {"code": 229, "operandCount": 2},
+            # accumulator shift
+            "shiftar": {"code": 230, "operandCount": 0},
+            "shiftal": {"code": 231, "operandCount": 0},
+            # indirect jump
+            "jumpi": {"code": 232, "operandCount": 1},
+            "calli": {"code": 233, "operandCount": 1},
+            # stack instructions
+            "push": {"code": 234, "operandCount": 0},
+            "pop": {"code": 235, "operandCount": 0},
+            "pushr": {"code": 236, "operandCount": 1},
+            "popr": {"code": 237, "operandCount": 1},
+            "pushi": {"code": 238, "operandCount": 1},
+            "popi": {"code": 239, "operandCount": 1},
+            "head": {"code": 240, "operandCount": 0},
+            "depth": {"code": 241, "operandCount": 0},
         }

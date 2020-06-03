@@ -29,8 +29,8 @@ inst_dic = {
             "bcrss": {"code": 27, "operandCount": 2},
             "jump": {"code": 28, "operandCount": 1},
             "call": {"code": 29, "operandCount": 1},
-            "retla": {"code": 31, "operandCount": 1},  # RETLA and RETURN swapped
             "return": {"code": 30, "operandCount": 0}, # for 2B 2U 
+            "retla": {"code": 31, "operandCount": 1},  # RETLA and RETURN swapped
             "addrpc": {"code": 32, "operandCount": 1},
             "initsp": {"code": 33, "operandCount": 0},
             "randa": {"code": 34, "operandCount": 0},

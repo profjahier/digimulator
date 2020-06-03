@@ -35,6 +35,8 @@ LINEWIDTH = 70
 # Import the right instruction set according to the configuration file
 instruction_set = import_module("instructionset_" + DR_model)
 
+firmware_list = ["2A", "2B", "2U"]
+
 # Global variables definitions
 RAM = [0]*256 # empty 256 byte RAM
 idle = True
@@ -782,6 +784,14 @@ def change_hexmode():
 #
 # editor functions
 #
+def change_fw(event):
+    global instruction_set
+    DR_model = fw_combo.get()
+    config.set('main', 'DR_MODEL', DR_model)
+    instruction_set = import_module("instructionset_" + DR_model)
+    engine.format_all(edit_text, instruction_set.inst_dic)
+    with open('config.ini', 'w') as f:
+        config.write(f)
 
 def assemble():
     global PC
@@ -973,6 +983,11 @@ can_stop.pack(side=tk.BOTTOM)
 btn_dbg = ttk.Button(frame_run, text='Hide RAM', command=show_ram)
 btn_dbg.state(['pressed'])
 btn_dbg.pack(side=tk.LEFT)
+ttk.Label(frame_run, text = " Digirule").pack(side=tk.LEFT, padx=5)
+fw_combo = ttk.Combobox(frame_run, values=firmware_list, width=3)
+fw_combo.current(firmware_list.index(DR_model))
+fw_combo.bind("<<ComboboxSelected>>", change_fw)
+fw_combo.pack(side=tk.LEFT)
 frame_goto = ttk.Frame(frame_dr)
 frame_goto.pack()
 ttk.Button(frame_goto, text='Goto', command=goto).pack(side=tk.LEFT)
