@@ -36,4 +36,5 @@ inst_dic = {
             "randa": {"code": 34, "operandCount": 0},
             "comout": {"code": 192, "operandCount": 0},
             "comin": {"code": 193, "operandCount": 0},
+            "comrdy": {"code": 194, "operandCount": 0},
         }

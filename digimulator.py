@@ -59,8 +59,10 @@ PC = 0
 DIGIRULE_USB = ""
 
 # Stack variables
-STACK_DEPTH = 4
-OPSTACK_DEPTH = 256
+# For digirule 2A stack is 4 bytes long
+# For 2B, 2U and above, it is 16 bytes long
+STACK_DEPTH = 4 if DR_model == "2A" else 16
+OPSTACK_DEPTH = 16
 stack = [0]*STACK_DEPTH
 opstack = [0]*OPSTACK_DEPTH
 SP = 0
@@ -125,15 +127,17 @@ def execute(mnemo):
         global SP
         if SP >= STACK_DEPTH:
         	halt() # stack overflow
-        stack[SP] = PC
-        SP += 1 # saves the address where to go after the next RETURN or RETURNLA
+        else:
+            stack[SP] = PC
+            SP += 1 # saves the address where to go after the next RETURN or RETURNLA
         
     def stack_out():
         global SP
         if SP < 0:
             halt() # stack underflow
-        SP -= 1
-        s = stack[SP]
+        else:
+            SP -= 1
+            s = stack[SP]
         return s
     def opcode(cmd):
         if cmd in inst_dic:
@@ -484,6 +488,13 @@ def execute(mnemo):
         	    accu = int(answer)
         except:
             accu = 0
+    elif mnemo == opcode("comrdy"):
+        decoded_inst=("comrdy")
+        # if a caracter is available in the serial buffer
+        # clears the zeroFlag
+        # if no character awaits, sets the zeroflag
+        # since we don't deal with serial port we will assume no character awaits
+        status_Z(0)
     else: # digirule program stops if unknown mnemonic
         execute(0)
     if view_ram:
@@ -785,10 +796,19 @@ def change_hexmode():
 # editor functions
 #
 def change_fw(event):
-    global instruction_set
+    global instruction_set, STACK_DEPTH, DR_model, stack, SP
     DR_model = fw_combo.get()
     config.set('main', 'DR_MODEL', DR_model)
+
+    # load instruction set
     instruction_set = import_module("instructionset_" + DR_model)
+    
+    # change stack size according to firmware
+    STACK_DEPTH = 4 if DR_model == "2A" else 16
+    stack = [0] * STACK_DEPTH
+    SP = 0
+
+    # refresh xolor syntax highlighting
     engine.format_all(edit_text, instruction_set.inst_dic)
     with open('config.ini', 'w') as f:
         config.write(f)
@@ -828,9 +848,12 @@ def assemble():
 
 
 def clearmem():
+    global PC, SP, OSP
     for i in range(len(RAM)):
         RAM[i] = 0
     PC = 0
+    SP = 0 # stack pointer
+    OSP = 0
     display_ram()
     switch_led(PC, frame='address')
     switch_led(RAM[PC], frame='data')
