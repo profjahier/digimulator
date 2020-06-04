@@ -1,11 +1,10 @@
 import sys
-import os.path
 from cx_Freeze import setup, Executable
 
 # Dependencies are automatically detected, but it might need fine tuning.
 build_exe_options = {
     "packages": ["os", "tkinter", "serial"],
-    "include_files": ["config.ini", "flash_memory.txt", "instructionset_2A.py", "instructionset_2B.py", "instructionset_2U.py"],
+    "include_files": ["minidoc.pdf", "config.ini", "flash_memory.txt", "instructionset_2A.py", "instructionset_2B.py", "instructionset_2U.py"],
     "excludes": []
 }
 
@@ -14,7 +13,7 @@ if sys.platform == "win32":
     base = "Win32GUI"
 
 setup(  name = "digimulator",
-        version = "1.5",
+        version = "1.51",
         description = "Digirule2 assembler and simulator",
         author="Olivier Lecluse - Ronan Jahier - Thomas Lecluse",
         options = {"build_exe": build_exe_options},

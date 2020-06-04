@@ -4,3 +4,4 @@ __pycache__
 .idea
 build
 dist
+minidoc.pdf
