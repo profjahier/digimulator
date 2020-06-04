@@ -493,8 +493,8 @@ def execute(mnemo):
         # if a caracter is available in the serial buffer
         # clears the zeroFlag
         # if no character awaits, sets the zeroflag
-        # since we don't deal with serial port we will assume no character awaits
-        status_Z(0)
+        answer = messagebox.askyesno("COMRDY","Is there anybody out there ?")
+        status_Z(1) if answer else status_Z(0)
     else: # digirule program stops if unknown mnemonic
         execute(0)
     if view_ram:
