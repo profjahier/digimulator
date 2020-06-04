@@ -11,6 +11,8 @@ build_exe_options = {
 base = None
 if sys.platform == "win32":
     base = "Win32GUI"
+    if 'bdist_msi' in sys.argv:
+        sys.argv += ['--initial-target-dir', 'c:\program\ files\digimulator']
 
 setup(  name = "digimulator",
         version = "1.51",
