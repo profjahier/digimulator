@@ -62,7 +62,7 @@ DIGIRULE_USB = ""
 # For digirule 2A stack is 4 bytes long
 # For 2B, 2U and above, it is 16 bytes long
 STACK_DEPTH = 4 if DR_model == "2A" else 16
-OPSTACK_DEPTH = 16
+OPSTACK_DEPTH = 64
 stack = [0]*STACK_DEPTH
 opstack = [0]*OPSTACK_DEPTH
 SP = 0
