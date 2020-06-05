@@ -445,30 +445,30 @@ def execute(mnemo):
         PC_next()
         stack_in(PC)
         PC = RAM[RAM[PC]] - 1 # (-1) because of the "PC+1 command" after this actual execution
-    elif mnemo == opcode("push"):
-        decoded_inst=("push")
+    elif mnemo == opcode("sspush"):
+        decoded_inst=("sspush")
         if OSP >= OPSTACK_DEPTH:
         	halt() # stack overflow
         opstack[OSP] = accu
         OSP += 1 
-    elif mnemo == opcode("pop"):
-        decoded_inst=("pop")
+    elif mnemo == opcode("sspop"):
+        decoded_inst=("sspop")
         if OSP == 0:
             halt() # stack underflow
         else:
             OSP -= 1
             accu = opstack[OSP]
             status_Z(accu)
-    elif mnemo == opcode("pushr"):
-        decoded_inst=("pushr" + str(RAM[PC+1]))
+    elif mnemo == opcode("sspushr"):
+        decoded_inst=("sspushr" + str(RAM[PC+1]))
         if OSP >= OPSTACK_DEPTH:
         	halt() # stack overflow
         PC_next()
         address = RAM[PC]
         opstack[OSP] = RAM[address]
         OSP += 1 
-    elif mnemo == opcode("popr"):
-        decoded_inst=("popr" + str(RAM[PC+1]))
+    elif mnemo == opcode("sspopr"):
+        decoded_inst=("sspopr" + str(RAM[PC+1]))
         PC_next()
         address = RAM[PC]
         if OSP == 0:
@@ -477,16 +477,16 @@ def execute(mnemo):
             OSP -= 1
             RAM[address] = opstack[OSP]
             status_Z(RAM[address])
-    elif mnemo == opcode("pushi"):
-        decoded_inst=("pushi" + str(RAM[PC+1]))
+    elif mnemo == opcode("sspushi"):
+        decoded_inst=("sspushi" + str(RAM[PC+1]))
         if OSP >= OPSTACK_DEPTH:
         	halt() # stack overflow
         PC_next()
         address = RAM[PC]
         opstack[OSP] = RAM[RAM[address]]
         OSP += 1 
-    elif mnemo == opcode("popi"):
-        decoded_inst=("popi" + str(RAM[PC+1]))
+    elif mnemo == opcode("sspopi"):
+        decoded_inst=("sspopi" + str(RAM[PC+1]))
         PC_next()
         address = RAM[PC]
         if OSP == 0:
@@ -495,15 +495,15 @@ def execute(mnemo):
             OSP -= 1
             RAM[RAM[address]] = opstack[OSP]
             status_Z(RAM[RAM[address]])
-    elif mnemo == opcode("head"):
-        decoded_inst=("head")
+    elif mnemo == opcode("sshead"):
+        decoded_inst=("sshead")
         if OSP == 0:
             halt() # stack underflow
         else:
             accu = opstack[OSP-1]
             status_Z(accu)
-    elif mnemo == opcode("depth"):
-        decoded_inst=("depth")
+    elif mnemo == opcode("ssdepth"):
+        decoded_inst=("ssdepth")
         accu = OSP
         status_Z(accu)
     elif mnemo == opcode("comout"):
