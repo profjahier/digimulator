@@ -150,11 +150,9 @@ class Assemble:
                         except ValueError:
                             return error("bad argument type " + o, line[-1])
                     else:
-                        # the argument is a variable or a label
-                        if o in keywords:
-                            ram.append(keywords[o])
-                        else:
-                            ram.append(o)
+                        # the argument is an offset, a variable or a label
+                        # it will be handled in the second pass
+                        ram.append(o)
                         # unknown arguments will be processed during the second pass
                     PC += 1
 
@@ -162,7 +160,14 @@ class Assemble:
 
         for i, r in enumerate(ram):
             if type(r) == str:
-                if r in keywords:
+                if '+' in r:
+                    # offset type
+                    arg1, arg2 = r.split('+')
+                    try:
+                        ram[i] = keywords[arg1] + int(arg2)
+                    except:
+                        return error(r, 0)
+                elif r in keywords:
                     ram[i] = keywords[r]
                 else:
                     return error(r, 0)

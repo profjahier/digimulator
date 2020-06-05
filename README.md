@@ -61,6 +61,17 @@ Comments begin with `//`
 
 Numbers are 8 bits long and can be in decimal (`127` for example), hexadecimal (beginning with '0x') or in binary , beginning with `0b` (`0b11110101` for example).
 
+## Offsets
+
+Offsets are allowed in the instructions arguments. Assume you have a data buffer   `buf` and you want to access the third byte, just call `buf+2`.
+
+Example: This copies `0x02` into the Accumulator.
+```
+copyra buf+3
+
+%data buf 0x00 0x01 0x02 0x03 0x04
+```
+
 
 # Licence
 GNU General Public License v3.0

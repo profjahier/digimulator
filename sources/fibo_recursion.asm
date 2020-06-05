@@ -10,7 +10,9 @@ copylr 6 R0
 copylr r0 f_from
 call f_push
 call f_fibo
-copyar R0   // R0 = fibo(6)
+copyar 255   // R0 = fibo(6)
+:stop
+    jump stop
 halt
 
 // fibo(6)

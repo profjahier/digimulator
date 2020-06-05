@@ -346,7 +346,44 @@ def execute(mnemo):
     elif mnemo == opcode("randa"):
         decoded_inst=("randa" )
         accu = randint(0, 255)
-    # Nouvelles instructions DGR2B
+    # New instructions DGR2U
+    elif mnemo == opcode("swapra"):
+        decoded_inst=("swapra " + str(RAM[PC+1]) )
+        PC_next()
+        accu, RAM[RAM[PC]] = RAM[RAM[PC]], accu 
+    elif mnemo == opcode("swaprr"):
+        decoded_inst=("swaprr " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        PC_next()
+        address = RAM[PC]
+        PC_next()
+        RAM[RAM[PC]], RAM[address] = RAM[address], RAM[RAM[PC]]
+    elif mnemo == opcode("mul"):
+        # MUL unsigned 8-bit multiply (3 bytes); 
+        # on entry arg1 = multiplicand and arg2 = multiplier; 
+        # on exit arg1 = product
+        decoded_inst=("mul " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        PC_next()
+        adr_arg1 = RAM[PC]
+        PC_next()
+        adr_arg2 = RAM[PC]
+        RAM[adr_arg1] = RAM[adr_arg1] * RAM[adr_arg2]
+    elif mnemo == opcode("div"):
+        # DIV unsigned 8-bit divide (3 bytes); 
+        # on entry arg1 = dividend and arg2 = divisor; 
+        # on exit arg1 = quotient and accumulator = remainder
+        decoded_inst=("div " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        PC_next()
+        adr_arg1 = RAM[PC]
+        PC_next()
+        adr_arg2 = RAM[PC]
+        dividend, divisor = RAM[adr_arg1], RAM[adr_arg2]
+        if divisor == 0:
+            # Exception : division by 0
+            halt()
+        else:
+            RAM[adr_arg1] = dividend // divisor
+            accu = dividend % divisor
+    # New instructions DGR2B
     elif mnemo == opcode("copyli"):
         decoded_inst=("copyli " + str(RAM[PC+1]) + " " + str(RAM[PC+2]) )
         PC_next()
