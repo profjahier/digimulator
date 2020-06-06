@@ -15,7 +15,7 @@ if sys.platform == "win32":
         sys.argv += ['--initial-target-dir', 'c:\program\ files\digimulator']
 
 setup(  name = "digimulator",
-        version = "1.51",
+        version = "1.53",
         description = "Digirule2 assembler and simulator",
         author="Olivier Lecluse - Ronan Jahier - Thomas Lecluse",
         options = {"build_exe": build_exe_options},
