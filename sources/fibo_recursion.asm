@@ -1,3 +1,8 @@
+// Fibonacci sequence
+// Computes Fn using recursion - n is at address 0x04
+// A Anastasiou - https://dgtools.readthedocs.io/en/latest/advanced_topics.html
+// 
+
 %define status_reg 252
 %define zero_bit   0
 %define carry_bit  1
@@ -5,17 +10,23 @@
 // Initialise the stack head
 copylr stack stack_ptr
 
-// computes F6
-copylr 6 R0
-copylr r0 f_from
+// computes F12
+copylr 12 R0
+copylr R0 f_from
 call f_push
 call f_fibo
 copyar 255   // R0 = fibo(6)
+
+// Reinitialize variables for another go
+copylr 0xF0 R0
+copylr 0xFF T0
+copylr 0xFF T1
+copylr 0 stack_ptr 
 :stop
     jump stop
 halt
 
-// fibo(6)
+// fibo(12)
 // computes Fn
 // To call : Push the value of n to the stack and call
 // Returns : The value of Fn in the Accumulator
@@ -85,4 +96,4 @@ return
 %data T0 0xFF
 %data T1 0xFF
 %data stack_ptr 0
-%data stack 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0x0f
+%data stack 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0

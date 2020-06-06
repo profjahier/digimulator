@@ -1,3 +1,8 @@
+// 
+// displays prime numbers from 5 to 255
+// uses DIV instruction - only for 2B and 2U firmwares
+
+
 %define status_reg  252
 %define dataLED_reg 255
 %define pi          248
@@ -20,7 +25,7 @@ copylr 5 nb // start of prime search
     cbr ZFlag status_reg
     incr nb 
     bcrsc ZFlag status_reg
-    jump the_end // End on game : nb > 255
+    jump the_end // End of game : nb > 255
     incr nb
     jump primeloop
 :isprime
@@ -37,9 +42,9 @@ copylr 5 nb // start of prime search
 :loopdiv
     decr dv
     decr dv
-    copyrr dv r0
-    copyra nb
-    call modulo
+    copyrr nb r0 // arg1 is modified by div, 
+    div r0 dv    // arg1 is the quotient, acc the remainder
+    addla 0
     bcrsc ZFlag status_reg 
     jump not_prime
     copyra dv
@@ -52,27 +57,8 @@ copylr 5 nb // start of prime search
 :not_prime
     cbr PFlag status_reg
     return    
-    
-// Division
-:modulo
-// Performs Acc/r0
-// Returns Remainder Acc % r0 into Accumulator
-    cbr ZFlag status_reg // Zero bit
-    cbr Carry status_reg // Carry bit
-    copylr 0 r1
-:sub_again
-    incr r1
-    subra r0
-:check_carry
-// Maybe the last SUB overshot zero
-    bcrss 1 status_reg
-    jump sub_again
-// Adjust results
-    addra r0
-    return
 
 // General Registers
 %data r0 0
-%data r1 0
 %data nb 0
 %data dv 0
