@@ -23,6 +23,7 @@ from importlib import import_module
 
 
 # Read global configuration
+VERSION = "version 1.53"
 config = ConfigParser()
 config.read('config.ini')
 DR_model = config.get('main', 'DR_MODEL')
@@ -845,7 +846,7 @@ def change_fw(event):
     stack = [0] * STACK_DEPTH
     SP = 0
 
-    # refresh xolor syntax highlighting
+    # refresh color syntax highlighting
     engine.format_all(edit_text, instruction_set.inst_dic)
     with open('config.ini', 'w') as f:
         config.write(f)
@@ -1010,7 +1011,7 @@ digirule.style = ttk.Style()
 digirule.style.configure('TFrame', background='green')
 digirule.config(bg=BGCOLOR)
 digirule.style.theme_use("alt")
-digirule.title("DIGIMULATOR : simulates a digirule 2A")
+digirule.title("DIGIMULATOR : simulates a digirule 2x - " + VERSION)
 digirule.resizable(0, 0)
 
 frame_left = ttk.Frame(digirule, style='TFrame')

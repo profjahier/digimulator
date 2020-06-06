@@ -12,13 +12,12 @@ class Assemble:
         self.operators_dic = inst_dic
         self.labelAddressByName = {}
 
-        self.parse()
-
     def split_lines(self, text):
-        """parses the text and returns a list of lines. A line is a list looking like this :
+        """parses the text and returns a list of lines. 
+           A line is a list looking like this :
             ['%define', 'statusregister', '252', 8], ['copylr', '1', 'dataledregister', 10], [':loop', 18] etc..:
-            le last element of a line is the line number in the original text file
-            coments and empty lines are removed"""
+            the last element of a line is the line number in the original text file
+            comments and empty lines are removed"""
 
         def is_space(c):
             return c == " " or c == "\t"
@@ -34,6 +33,7 @@ class Assemble:
         words_list = []
         word = ""
         line_number = 0
+        inString = False
 
         for c in text:
             if is_eol(c):
@@ -46,13 +46,18 @@ class Assemble:
                 word = ""
                 comment_mode = False
             elif not comment_mode:
-                if is_space(c):
+                if c == "'" or c == '"':
+                    inString = not inString
+                if is_space(c) and not inString:
                     if word: words_list.append(word)
                     word = ""
                 elif is_comment(c):
                     comment_mode = True
                 else:
-                    word += c.lower()
+                    if inString:
+                        word += c
+                    else:
+                        word += c.lower()
         return lines_list
 
     def parse(self):
@@ -94,7 +99,10 @@ class Assemble:
                 keywords[line[1]] = PC
                 for d in line[2:-1]:
                     try:
-                        if d[0:2] == '0b':
+                        if d[0] == "'" or d[0] == '"':
+                            # data is a string
+                            code = eval(d)
+                        elif d[0:2] == '0b':
                             code = int(d, 2)
                         elif d[0:2] == '0x':
                             code = int(d, 16)
@@ -102,8 +110,14 @@ class Assemble:
                             code = int(d)
                     except:
                         return error("error in data definition", line[-1])
-                    ram.append(code)
-                    PC += 1
+                    if type(code) is str:
+                        # append all characters
+                        for c in code:
+                            ram.append(ord(c))
+                            PC += 1
+                    else:
+                        ram.append(code)
+                        PC += 1
             elif line[0][0] == ":":
                 # label definition
                 try:
@@ -125,7 +139,10 @@ class Assemble:
                 ram.append(code)
                 PC += 1
                 for o in line[1:-1]:
-                    if o.isdigit():
+                    if (o[0] == "'" or o[0] == '"') and len(eval(o)) == 1:
+                        # argument is a single character
+                        ram.append(ord(eval(o)))
+                    elif o.isdigit():
                         # the operand is a number
                         n = int(o)
                         if not 0 <= n < 256:
