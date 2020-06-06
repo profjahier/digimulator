@@ -23,7 +23,7 @@ from importlib import import_module
 
 
 # Read global configuration
-VERSION = "version 1.53"
+VERSION = "version 1.54"
 config = ConfigParser()
 config.read('config.ini')
 DR_model = config.get('main', 'DR_MODEL')
@@ -120,10 +120,7 @@ def status_C(n, way='up'):
 def execute(mnemo):
     """ executes the instruction of mnemonic (mnemo is given in decimal base) """
     def halt():
-        global run_mode
-        run_mode = not(run_mode)
-        can_run['bg'] = 'black'
-        can_stop['bg'] = 'red'
+        do_stop()
     def stack_in(p):
         global SP
         if SP >= STACK_DEPTH:
@@ -558,23 +555,36 @@ def step():
     execute(mnemo)
     PC_next()
 
+def do_stop():
+    global run_mode, idle
+    can_run['bg'] = 'black'
+    can_stop['bg'] = 'red'
+    run_mode = False
+    switch_led(PC, frame='address')
+    switch_led(RAM[PC], frame='data')
+    btn_run.state(['!pressed'])
+    btn_run.configure(text='Run')
+def do_run():
+    global run_mode, idle
+    can_run['bg'] = 'green'
+    can_stop['bg'] = 'black'
+    run_mode = True
+    idle = True
+    btn_run.state(['pressed'])
+    btn_run.configure(text='Stop')
+    error_sv.set("")
+
 def run():
     """ toggles run_mode, and starts running the program from the address defined by the address LEDs """
-    global run_mode, PC, idle
+    global PC
     print_dbg(f'btn_run was pressed') 
-    error_sv.set("")
     if run_mode and not(save_mode or load_mode):
-        can_run['bg'] = 'black'
-        can_stop['bg'] = 'red'
-        run_mode = not(run_mode)
+        do_stop()
         switch_led(PC, frame='address')
         switch_led(RAM[PC], frame='data')
     elif not run_mode and not(save_mode or load_mode):
-        can_run['bg'] = 'green'
-        can_stop['bg'] = 'black'
-        run_mode = not(run_mode)
+        do_run()
         PC = b2d(read_from_led(frame='address')) # gets the address from where the program should start
-        idle = True
         program_run() # run : let's go !
         
 def prev():
@@ -807,10 +817,15 @@ def display_ram():
             stack_str += d2h(stack[i], iv_hex.get()) + " "
         sv_sp.set(stack_str)
         sv_status.set(f"ST  = {d2b(RAM[REG_STATUS])}")
-    
+
+def dbg_setpc_cs():
+    text_RAM.tag_remove(tk.SEL, "0.0", tk.END)
+
 def dbg_setpc(sender):
     """ goes to a specifc address (sets new PC) directly by double-clicking """
-    global PC
+    global PC, run_mode, idle
+    # First we stop the execution
+    do_stop()
     s = text_RAM.index(tk.CURRENT).split(".")
     if iv_hex.get()==1:
         l = int(s[0]) - 1
@@ -819,9 +834,12 @@ def dbg_setpc(sender):
         l = int(s[0]) - 1
         c = (int(s[1]) - 6) // 4
     PC = l * 8 + c
+    if not (0 <= PC <= 255):
+        PC=0
     display_ram()
     switch_led(PC, frame='address')
     switch_led(RAM[PC], frame='data')
+    text_RAM.after(1,dbg_setpc_cs)
 
 def change_hexmode():
     if iv_hex.get()==1:
@@ -1031,7 +1049,7 @@ frame_ram.pack()
 # Interface digirule
 frame_run = ttk.Frame(frame_dr)
 frame_run.pack()
-btn_run = ttk.Button(frame_run, text='Run/Stop ', command=run)
+btn_run = ttk.Button(frame_run, text='Run', command=run)
 btn_run.pack(side=tk.LEFT)
 btn_step = ttk.Button(frame_run, text='Step ', command=step)
 btn_step.pack(side=tk.LEFT)
