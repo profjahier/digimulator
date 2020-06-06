@@ -4,7 +4,7 @@ from cx_Freeze import setup, Executable
 # Dependencies are automatically detected, but it might need fine tuning.
 build_exe_options = {
     "packages": ["os", "tkinter", "serial"],
-    "include_files": ["minidoc.pdf", "config.ini", "flash_memory.txt", "instructionset_2A.py", "instructionset_2B.py", "instructionset_2U.py"],
+    "include_files": ["asm.py", "minidoc.pdf", "config.ini", "flash_memory.txt", "instructionset_2A.py", "instructionset_2B.py", "instructionset_2U.py"],
     "excludes": []
 }
 

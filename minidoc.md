@@ -81,6 +81,15 @@ copyra buf+2
 
 %data buf 0x00 0x01 0x02 0x03 0x04
 ```
+## Strings
+
+- Strings are allowed with %data directive
+- caracters are allowed as instruction parameters
+
+Example : ```
+copyla '0'
+%data message "Hello, World!" 0
+```
 
 # Licence
 GNU General Public License v3.0
