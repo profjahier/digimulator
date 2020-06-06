@@ -1,3 +1,6 @@
+// Hello world from Brent
+//
+
 %define statusReg 0b11111100
 %define zeroFlag  0
 
@@ -8,7 +11,7 @@ initsp
     :loop
         copyra  0    // loop+1 is the argument of copyra
         incr loop+1  // this program modifies itself
-        addla 0      // in order to do the indirect adressing
+        addla 0      // in order to do the read the string
         bcrsc zeroFlag statusReg
         jump start
         comout
