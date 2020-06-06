@@ -5,8 +5,8 @@ Simulator of **digirule 2** (https://bradsprojects.com/digirule2/) written in Py
 
 # Installation
 
-You must have Python 3.6 or above with tkInter - usually installed with your python distribution.
-On Ubuntu, if you don't have tkintern install it via
+You must have Python 3.6 or above with tkinter - usually installed with your python distribution.
+On Ubuntu, if you don't have tkinter install it via
 ```
 sudo apt install python3-tk
 ```
@@ -19,7 +19,7 @@ sudo pip3 install serial serial-tool
 # Instruction set
 
 Digimulator offers several instruction sets :
-- the legacy *Digirule 2A* 
+- the legacy *Digirule 2A*
 - the *Digirule 2B* enhanced instruction set. See https://github.com/wawachief/DGR2B for more informations.
 - the new *digirule 2U* with USB communication
 
@@ -57,7 +57,7 @@ Labels begin with `:`.
 
 Comments begin with `//`
 
-## Numbers 
+## Numbers
 
 Numbers are 8 bits long and can be in decimal (`127` for example), hexadecimal (beginning with '0x') or in binary , beginning with `0b` (`0b11110101` for example).
 
