@@ -131,7 +131,7 @@ def execute(mnemo):
         
     def stack_out():
         global SP
-        if SP < 0:
+        if SP == 0:
             halt() # stack underflow
         else:
             SP -= 1
@@ -534,6 +534,7 @@ def execute(mnemo):
         execute(0)
     if view_ram:
         sv_inst.set(decoded_inst)
+        # print (decoded_inst)
     
 def program_run():
     """ runs the program ! """
