@@ -23,7 +23,7 @@ from importlib import import_module
 
 
 # Read global configuration
-VERSION = "version 1.54"
+VERSION = "version 1.56"
 config = ConfigParser()
 config.read('config.ini')
 DR_model = config.get('main', 'DR_MODEL')
@@ -162,14 +162,23 @@ def execute(mnemo):
         value = RAM[PC]
         PC_next()
         RAM[RAM[PC]] = value
+        # Change of behaviour since 2A
+        if DR_model != "2A":
+            status_Z(value)
     elif mnemo == opcode("copyla"):
         decoded_inst=("copyla " + str(RAM[PC+1]) )
         PC_next()
         accu = RAM[PC]
+        # Change of behaviour since 2A
+        if DR_model != "2A":
+            status_Z(accu)
     elif mnemo == opcode("copyar"):
         decoded_inst=("copyar " + str(RAM[PC+1]) )
         PC_next()
         RAM[RAM[PC]] = accu
+        # Change of behaviour since 2A
+        if DR_model != "2A":
+            status_Z(accu)
     elif mnemo == opcode("copyra"):
         decoded_inst=("copyra " + str(RAM[PC+1]) )
         PC_next()
@@ -364,7 +373,9 @@ def execute(mnemo):
         adr_arg1 = RAM[PC]
         PC_next()
         adr_arg2 = RAM[PC]
-        RAM[adr_arg1] = RAM[adr_arg1] * RAM[adr_arg2]
+        RAM[adr_arg1] = (RAM[adr_arg1] * RAM[adr_arg2]) % 256
+        status_Z(RAM[adr_arg1])
+        status_C(RAM[adr_arg1] * RAM[adr_arg2])
     elif mnemo == opcode("div"):
         # DIV unsigned 8-bit divide (3 bytes); 
         # on entry arg1 = dividend and arg2 = divisor; 
@@ -381,6 +392,12 @@ def execute(mnemo):
         else:
             RAM[adr_arg1] = dividend // divisor
             accu = dividend % divisor
+            status_Z(RAM[adr_arg1])
+            if accu == 0:
+                # Remainder is 0, we activate the Carry flag
+                status_C(256)
+            else:
+                status_C(0)
     # New instructions DGR2B
     elif mnemo == opcode("copyli"):
         decoded_inst=("copyli " + str(RAM[PC+1]) + " " + str(RAM[PC+2]) )
