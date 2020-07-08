@@ -23,7 +23,7 @@ from importlib import import_module
 
 
 # Read global configuration
-VERSION = "version 1.56"
+VERSION = "version 1.6"
 config = ConfigParser()
 config.read('config.ini')
 DR_model = config.get('main', 'DR_MODEL')
@@ -107,15 +107,14 @@ def status_Z(n):
     RAM[REG_STATUS] &= 254 # sets Zero bit to 0
     return False
     
-def status_C(n, way='up'):
+def status_C(n):
     """ toggles the Carry bit (bit 1) on the status register if necessary """
-    if (n > 255 and way=='up') or (n < 0 and way=='down'):
-        RAM[REG_STATUS] |= 2 # sets Carry bit to 1
-        print_dbg('bit C status = 1')
-        return True
-    RAM[REG_STATUS] &= 253 # sets Carry bit to 0
-    print_dbg('bit C status = 0')
-    return False
+    if (0 <= n <= 255):
+        RAM[REG_STATUS] &= 253 # sets Carry bit to 0
+        return n
+    else:
+        RAM[REG_STATUS] |= 2   # sets Carry bit to 1
+        return n%256
             
 def execute(mnemo):
     """ executes the instruction of mnemonic (mnemo is given in decimal base) """
@@ -193,39 +192,45 @@ def execute(mnemo):
         status_Z(RAM[address])
     elif mnemo == opcode("addla"):
         decoded_inst=("addla " + str(RAM[PC+1]) )
+        carry = (RAM[REG_STATUS] & 2) // 2 # 0 or 1
         PC_next()
-        value = RAM[PC]        
-        if status_C(accu + value):
-            accu += value - 256
+        value = RAM[PC]
+        # Change of behaviour since 2A
+        if DR_model != "2A":
+            accu = status_C(accu + value + carry)
         else:
-            accu += value
+            accu = status_C(accu + value)
         status_Z(accu)
     elif mnemo == opcode("addra"):
         decoded_inst=("addra " + str(RAM[PC+1]) )
+        carry = (RAM[REG_STATUS] & 2) // 2 # 0 or 1
         PC_next()
         value = RAM[RAM[PC]]
-        if status_C(accu + value):
-            accu += value - 256
+        if DR_model != "2A":
+            accu = status_C(accu + value + carry)
         else:
-            accu += value
+            accu = status_C(accu + value)
         status_Z(accu)
     elif mnemo == opcode("subla"):
+        # Carry = borrow
         decoded_inst=("subla " + str(RAM[PC+1]) )
+        borrow = (RAM[REG_STATUS] & 2) // 2
         PC_next()
         value = RAM[PC]
-        if status_C(accu - value, way='down'):
-            accu += 256 - value
+        if DR_model != "2A":
+            accu = status_C(accu - value - borrow)
         else:
-            accu -= value
+            accu = status_C(accu - value)
         status_Z(accu)
     elif mnemo == opcode("subra"):
         decoded_inst=("subra " + str(RAM[PC+1]) )
+        borrow = (RAM[REG_STATUS] & 2) // 2
         PC_next()
         value = RAM[RAM[PC]]
-        if status_C(accu - value, way='down'):
-            accu += 256 - value
+        if DR_model != "2A":
+            accu = status_C(accu - value - borrow)
         else:
-            accu -= value
+            accu = status_C(accu - value)
         status_Z(accu)
     elif mnemo == opcode("andla"):
         decoded_inst=("andla " + str(RAM[PC+1]) )
@@ -287,22 +292,21 @@ def execute(mnemo):
         decoded_inst=("shiftrl " + str(RAM[PC+1]) )
         PC_next()
         address = RAM[PC]
-        RAM[address] <<= 1 # shifts whitout taking care of the previous Carry bit
-        carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
-        RAM[address] += carry # sets the LSB equals to the previous Carry bit
-        if status_C(RAM[address]):
-            RAM[address] -= 256
+        RAM[address] <<= 1                      # shifts whitout taking care of the previous Carry bit
+        carry = (RAM[REG_STATUS] & 2) // 2      # 0 or 2 # gets the previous Carry bit on the status register
+        RAM[address] += carry                   # sets the LSB equals to the previous Carry bit
+        RAM[address] = status_C(RAM[address])
     elif mnemo == opcode("shiftrr"):
         decoded_inst=("shiftrr " + str(RAM[PC+1]) )
         PC_next()
         address = RAM[PC]
-        carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
-        if RAM[address] % 2 == 1: # if odd value => raises a new Carry
-            RAM[REG_STATUS] |= 2 # sets Carry bit to 1
+        carry = (RAM[REG_STATUS] & 2) // 2      # gets the previous Carry bit on the status register
+        if RAM[address] % 2 == 1:               # if odd value => raises a new Carry
+            status_C(256)                       # sets Carry bit to 1
         else:
-            RAM[REG_STATUS] &= 253 # sets Carry bit to 0
-        RAM[address] >>= 1 # shifts whitout taking care of the previous Carry bit
-        RAM[address] += 128 * carry # sets the MSB equals to the previous Carry bit
+            status_C(0)                         # sets Carry bit to 0
+        RAM[address] >>= 1                      # shifts whitout taking care of the previous Carry bit
+        RAM[address] += 128 * carry             # sets the MSB equals to the previous Carry bit
     elif mnemo == opcode("cbr"):
         decoded_inst=("cbr " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
         PC_next()
@@ -373,9 +377,8 @@ def execute(mnemo):
         adr_arg1 = RAM[PC]
         PC_next()
         adr_arg2 = RAM[PC]
-        RAM[adr_arg1] = (RAM[adr_arg1] * RAM[adr_arg2]) % 256
+        RAM[adr_arg1] = status_C(RAM[adr_arg1] * RAM[adr_arg2])
         status_Z(RAM[adr_arg1])
-        status_C(RAM[adr_arg1] * RAM[adr_arg2])
     elif mnemo == opcode("div"):
         # DIV unsigned 8-bit divide (3 bytes); 
         # on entry arg1 = dividend and arg2 = divisor; 
@@ -440,8 +443,7 @@ def execute(mnemo):
         accu <<= 1 # shifts whitout taking care of the previous Carry bit
         carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
         accu += carry # sets the LSB equals to the previous Carry bit
-        if status_C(accu):
-            accu -= 256
+        accu = status_C(accu)
     elif mnemo == opcode("shiftar"):
         decoded_inst=("shiftar")
         carry = 1 if RAM[REG_STATUS] & 2 else 0 # gets the previous Carry bit on the status register
