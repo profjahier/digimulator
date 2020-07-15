@@ -1,8 +1,9 @@
+# Author: Olivier Lécluse
+# License GPL-3
+
+#
 # Assembler for digirule 2A
-# Ronan Jahier
-# Olivier Lécluse
-# Thomas Lécluse
-# Licence GNU General Public License v3.0
+#
 
 class Assemble:
     def __init__(self, text, inst_dic):
@@ -20,7 +21,7 @@ class Assemble:
             comments and empty lines are removed"""
 
         def is_space(c):
-            return c == " " or c == "\t"
+            return c == " " or c == "\t" or c == ","
 
         def is_eol(c):
             return c == "\n"
@@ -51,7 +52,7 @@ class Assemble:
                 if is_space(c) and not inString:
                     if word: words_list.append(word)
                     word = ""
-                elif is_comment(c):
+                elif is_comment(c) and not inString:
                     comment_mode = True
                 else:
                     if inString:
@@ -70,21 +71,38 @@ class Assemble:
                 return (False, "unknown keyword " + msg, l, msg)
             else:
                 return (False, msg + " on line " + str(l), l)
-
+        
+        def find_line(keyword):
+            for line in self.lines:
+                if keyword in line :
+                    return line[-1]
+            return 0
         PC = 0
         ram = []
+        line_pc = dict()
 
-        keywords = dict()  # keywords dictionary (variable definitions and labels)
-        # example of entry (True, value) for a variable definition
-        #                  (False, PC) for a label - PC is the program counter value for the Jump
+        # Keywords dictionary (variable definitions and labels)
+        keywords = { 
+            "_z" :   0,
+            "_c" :   1,
+            "_sar" : 2,
+            "_sr" : 252,
+            "_br" : 253,
+            "_ar" : 254,
+            "_dr" : 255,
+        }
         # the key is the variable or the label name
+        labels = []
 
         # Premiere passe
         for line in self.lines:
+            # line format : [Instruction, param1, ..., paramn, #line] 
+            line_pc[line[-1]] = PC
+
             if PC >= 252:
                 return error("no space left in program memory", line[-1])
             if line[0] == "%define":
-                # variable definition
+                # variable definition directive
                 try:
                     if line[2][0:2] == '0b':
                         keywords[line[1]] = int(line[2], 2)
@@ -95,13 +113,15 @@ class Assemble:
                 except:
                     return error("error in keyword definition", line[3])
             elif line[0] == "%data":
-                # Data definitions
+                # Data definition directire
                 keywords[line[1]] = PC
                 for d in line[2:-1]:
+                    isStr = False
                     try:
                         if d[0] == "'" or d[0] == '"':
                             # data is a string
                             code = eval(d)
+                            isStr = True
                         elif d[0:2] == '0b':
                             code = int(d, 2)
                         elif d[0:2] == '0x':
@@ -109,8 +129,8 @@ class Assemble:
                         else:
                             code = int(d)
                     except:
-                        return error("error in data definition", line[-1])
-                    if type(code) is str:
+                        code = d # symbol will be dealt with in second phase
+                    if isStr:
                         # append all characters
                         for c in code:
                             ram.append(ord(c))
@@ -118,10 +138,28 @@ class Assemble:
                     else:
                         ram.append(code)
                         PC += 1
+            elif line[0] == "%org":
+                # Memory relocation directive
+                adr = line[1]
+                try:
+                    if adr[0:2] == '0b':
+                        adr = int(adr, 2)
+                    elif adr[0:2] == '0x':
+                        adr = int(adr, 16)
+                    else:
+                        adr = int(adr)
+                except:
+                    return error("error in %org directive", line[-1])
+                if adr < PC :
+                    return error("Illegal memory relocation", line[-1])
+                for _ in range(adr-PC):
+                    PC += 1
+                    ram.append(0)
             elif line[0][0] == ":":
                 # label definition
                 try:
                     keywords[line[0][1:]] = PC
+                    labels.append(line[0][1:])
                 except:
                     return error("error in label definition", line[1])
             else:
@@ -183,9 +221,11 @@ class Assemble:
                     try:
                         ram[i] = keywords[arg1] + int(arg2)
                     except:
-                        return error(r, 0)
+                        return error("Undefined ofset " + r, find_line(r))
                 elif r in keywords:
                     ram[i] = keywords[r]
                 else:
-                    return error(r, 0)
-        return (True, ram)
+                    return error("Undefined keyword " + r, find_line(r))
+        if len(ram) > 255:
+            return error("Program too long !", 0)
+        return (True, ram, keywords, labels, line_pc)

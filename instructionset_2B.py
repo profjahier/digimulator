@@ -69,6 +69,7 @@ inst_dic = {
             "randa":   {"code": 46, "operandCount": 0},
 
             # stack instructions
+            "tbr":     {"code": 233, "operandCount": 2},
             "sspush":  {"code": 234, "operandCount": 0}, # new 2B instructions
             "sspop":   {"code": 235, "operandCount": 0}, # new 2B instructions
             "sspushr": {"code": 236, "operandCount": 1}, # new 2B instructions

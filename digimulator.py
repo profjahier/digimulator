@@ -23,7 +23,7 @@ from importlib import import_module
 
 
 # Read global configuration
-VERSION = "version 1.6"
+VERSION = "version 1.6.1"
 config = ConfigParser()
 config.read('config.ini')
 DR_model = config.get('main', 'DR_MODEL')
@@ -319,6 +319,12 @@ def execute(mnemo):
         bit = RAM[PC]
         PC_next()
         RAM[RAM[PC]] |= 2**bit # sets the specified bit to 1
+    elif mnemo == opcode("tbr"):
+        decoded_inst=("tbr " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
+        PC_next()
+        bit = RAM[PC]
+        PC_next()
+        RAM[RAM[PC]] ^= 2**bit # sets the specified bit to 1
     elif mnemo == opcode("bcrsc") or mnemo == opcode("bcrss"):
         if mnemo == opcode("bcrsc"):
             decoded_inst=("bcrsc " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
@@ -328,6 +334,35 @@ def execute(mnemo):
         bit = RAM[PC]
         PC_next()
         if (mnemo == opcode("bcrsc") and not(RAM[RAM[PC]] & 2**bit)) or (mnemo == opcode("bcrss") and (RAM[RAM[PC]] & 2**bit)):
+            PC += 2
+    # bit instruction change from 2U
+    elif mnemo == opcode("bclr"):
+        decoded_inst=("bclr " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
+        PC_next()
+        bit = RAM[PC]
+        PC_next()
+        RAM[RAM[PC]] &= (255-2**bit) # sets the specified bit to 0
+    elif mnemo == opcode("bset"):
+        decoded_inst=("bset " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
+        PC_next()
+        bit = RAM[PC]
+        PC_next()
+        RAM[RAM[PC]] |= 2**bit # sets the specified bit to 1
+    elif mnemo == opcode("bchg"):
+        decoded_inst=("bchg " + str(RAM[PC+1]) + " " + str(RAM[PC+2]))
+        PC_next()
+        bit = RAM[PC]
+        PC_next()
+        RAM[RAM[PC]] ^= 2**bit # sets the specified bit to 1
+    elif mnemo == opcode("btstsc") or mnemo == opcode("btstss"):
+        if mnemo == opcode("bcrsc"):
+            decoded_inst=("btstsc " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        else:
+            decoded_inst=("btstss " + str(RAM[PC+1])+ " " + str(RAM[PC+2]) )
+        PC_next()
+        bit = RAM[PC]
+        PC_next()
+        if (mnemo == opcode("btstsc") and not(RAM[RAM[PC]] & 2**bit)) or (mnemo == opcode("btstss") and (RAM[RAM[PC]] & 2**bit)):
             PC += 2
     elif mnemo == opcode("jump"):
         decoded_inst=("jump " + str(RAM[PC+1]) )

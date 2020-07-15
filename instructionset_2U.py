@@ -51,22 +51,24 @@ inst_dic = {
             "shiftrr": {"code": 34, "operandCount": 1},
 
             # bit manipulation
-            "cbr":     {"code": 35, "operandCount": 2},
-            "sbr":     {"code": 36, "operandCount": 2},
-            "bcrsc":   {"code": 37, "operandCount": 2},
-            "bcrss":   {"code": 38, "operandCount": 2},
+            "bclr":     {"code": 35, "operandCount": 2},
+            "bset":     {"code": 36, "operandCount": 2},
+            "bchg":     {"code": 37, "operandCount": 2},  # new 2U instructions
+            "btstsc":   {"code": 38, "operandCount": 2},
+            "btstss":   {"code": 39, "operandCount": 2},
+
 
             # Program comtrol
-            "jump":    {"code": 39, "operandCount": 1},
-            "jumpi":   {"code": 40, "operandCount": 1},  # new 2U instructions
-            "call":    {"code": 41, "operandCount": 1},
-            "calli":   {"code": 42, "operandCount": 1},  # new 2U instructions
-            "return":  {"code": 43, "operandCount": 0},  
-            "retla":   {"code": 44, "operandCount": 1},  
-            "addrpc":  {"code": 45, "operandCount": 1},
+            "jump":    {"code": 40, "operandCount": 1},
+            "jumpi":   {"code": 41, "operandCount": 1},  # new 2U instructions
+            "call":    {"code": 42, "operandCount": 1},
+            "calli":   {"code": 43, "operandCount": 1},  # new 2U instructions
+            "return":  {"code": 44, "operandCount": 0},  
+            "retla":   {"code": 45, "operandCount": 1},  
+            "addrpc":  {"code": 46, "operandCount": 1},
 
             # misc
-            "randa":   {"code": 46, "operandCount": 0},
+            "randa":   {"code": 47, "operandCount": 0},
 
             # Serial communication
             "comout":  {"code": 192, "operandCount": 0}, # new 2U instructions
